@@ -25,7 +25,6 @@ namespace CliverBot.Console.Form.Partner
                     Step = 0,
                     PropertyName = nameof(PartnerModel.BusinessName),
                     InformationText = "Write your partner business name.",
-                    ErrorText = "Incorrect email.",
                     ValidationHandlers = new List<ValidationHandler<TContext>>()
                     {
                         new ValidationHandler<TContext>()
@@ -167,12 +166,25 @@ namespace CliverBot.Console.Form.Partner
                 },
             };
 
+            formHandler.ExtendedPrevDelegate = (node) => async(context, cancellationToken) =>
+            {
+                context.Update.ClearUpdate();
+                context.UserState.CurrentState.Step -= 3;
+                await node.Previous?.Data(context, cancellationToken);
+            };
+
+            formHandler.ExtendedNextDelegate = (node) => async (context, cancellationToken) =>
+            {
+                context.Update.ClearUpdate();
+                context.UserState.CurrentState.Step++;
+                await node.Next?.Data(context, cancellationToken);
+            };
+
             //Условие, шаг может быть обработан только единожды.
             formHandler.ConfiramtionInfo = new ConfirmStepInfo()
             {
                 ConfirmationText = "Waiting for confirmation.",
                 Step = 4,
-
             };
         }
 
@@ -213,13 +225,9 @@ namespace CliverBot.Console.Form.Partner
             {
                 switch (context.Update.Message.Text)
                 {
-                    case "↩️ Назад":
-                        context.Update.ClearUpdate();
-                        context.UserState.CurrentState.Step -= 3;
-                        await prev(context, cancellationToken);
-                        return true;
+                    case "↩️ Назад": await prev(context, cancellationToken); return true;
 
-                    case "⤵️ Пропустить": await next(context); break;
+                    case "⤵️ Пропустить": await next(context); return true;
 
                     //case "❌ Отмена": await RedirectToStage<MenuStage>(context); break;
 
@@ -252,11 +260,7 @@ namespace CliverBot.Console.Form.Partner
             {
                 switch (context.Update.Message.Text)
                 {
-                    case "↩️ Назад": 
-                        context.Update.ClearUpdate();
-                        context.UserState.CurrentState.Step -= 3;
-                        await prev(context, cancellationToken);
-                        return true;
+                    case "↩️ Назад": await prev(context, cancellationToken); return true;
 
                     //Как покидать стейдж и куда ухожить?
                     case "❌ Отмена": /*await RedirectToStage<PartnerMenuStage>(context);*/ break;

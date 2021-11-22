@@ -16,10 +16,8 @@ namespace CliverBot.Console.Form
     {
         public List<ValidationHandler<TContext>> ValidationHandlers { get; set; }
         public int Step { get; set; }
-        public string Stage { get; set; }
         public string PropertyName { get; set; }
         public string InformationText { get; set; }
-        public string ErrorText { get; set; }
         public InlineKeyboardMarkup EntryInlineKeyboardMarkup { get; set; }
         public ReplyKeyboardMarkup EntryReplyKeyboardMarkup { get; set; }
         public ReplyUpdateDelegate<TContext> ReplyKeyboardHandler { get; set; }

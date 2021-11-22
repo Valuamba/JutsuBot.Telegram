@@ -25,7 +25,6 @@ namespace CliverBot.Console.Form.Authorization
                     Step = 0,
                     PropertyName = nameof(AuthorizationModel.Email),
                     InformationText = "Write your email.",
-                    ErrorText = "Incorrect email.",
                     ValidationHandlers = new List<ValidationHandler<TContext>>()
                     {
                         new ValidationHandler<TContext>()
@@ -46,7 +45,6 @@ namespace CliverBot.Console.Form.Authorization
                     Step = 2,
                     PropertyName = nameof(AuthorizationModel.FirstName),
                     InformationText = "Write your first name.",
-                    ErrorText = "Incorrect first name.",
                     ValidationHandlers = new List<ValidationHandler<TContext>>()
                     {
                         //new ValidationHandler<TContext>()

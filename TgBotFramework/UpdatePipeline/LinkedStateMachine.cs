@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using TgBotFramework.Interfaces;
+using TgBotFramework.WrapperExtensions;
 
 namespace TgBotFramework.UpdatePipeline
 {
@@ -56,7 +57,8 @@ namespace TgBotFramework.UpdatePipeline
             return this;
         }
 
-        public Func<LinkedNode<TContext>, UpdateDelegate<TContext>> GetExecutionSequence(Func<LinkedNode<TContext>, UpdateDelegate<TContext>> executionSequence = null)
+        public Func<LinkedNode<TContext>, UpdateDelegate<TContext>> GetExecutionSequence(
+            Func<LinkedNode<TContext>, UpdateDelegate<TContext>> executionSequence = null)
         {
             Func<LinkedNode<TContext>, UpdateDelegate<TContext>> defaultExecutionSequence =
                 (node) =>
@@ -85,18 +87,22 @@ namespace TgBotFramework.UpdatePipeline
             return executionSequence ?? defaultExecutionSequence;
         }
 
-        public void SeparateObjectToHandlers<THandler>(LinkedNode<TContext> node, THandler handler)
+        public void SeparateObjectToHandlers<THandler>(
+            LinkedNode<TContext> node, 
+            THandler handler,
+            UpdateDelegate<TContext> prevDelegate = null,
+            UpdateDelegate<TContext> nextDelegate = null)
         {
             if (handler is ICallbackButtonHandler<TContext> callbackButtonHandler)
             {
                 node.CallbackButtonHandler = (context, cancellationToken) =>
-                    callbackButtonHandler.HandleCallbackButton(context, node.Previous?.Data, node.Next?.Data, cancellationToken);
+                    callbackButtonHandler.HandleCallbackButton(context, prevDelegate, nextDelegate, cancellationToken);
             }
 
             if (handler is IReplyKeyboardButtonHandler<TContext> replyKeyboardButtonHandler)
             {
                 node.ReplyKeyboardButtonHandler = (context, cancellationToken) =>
-                    replyKeyboardButtonHandler.HandleReplyKeyboardButton(context, node.Previous?.Data, node.Next?.Data, cancellationToken);
+                    replyKeyboardButtonHandler.HandleReplyKeyboardButton(context, prevDelegate, nextDelegate, cancellationToken);
             }
 
             if (handler is IStep<TContext> step)
@@ -108,43 +114,45 @@ namespace TgBotFramework.UpdatePipeline
             if (handler is IUpdateHandler<TContext> updateHandler)
             {
                 node.Handler = (context, cancellationToken) =>
-                    updateHandler.HandleAsync(context, node.Previous?.Data, node.Next?.Data, cancellationToken);
+                    updateHandler.HandleAsync(context, prevDelegate, nextDelegate, cancellationToken);
             }
         }
 
         public void SeparateObjectToHandlers(
-                LinkedNode<TContext> node,
-                CallbackUpdateDelegate<TContext> callbackButtonHandler,
-                ReplyUpdateDelegate<TContext> replyKeyboardButtonHandler,
-                HandlerDelegate<TContext> updateHandler,
-                StepDelegate<TContext> stepHandler)
+            LinkedNode<TContext> node,
+            CallbackUpdateDelegate<TContext> callbackButtonHandler,
+            ReplyUpdateDelegate<TContext> replyKeyboardButtonHandler,
+            HandlerDelegate<TContext> updateHandler,
+            StepDelegate<TContext> stepHandler,
+            UpdateDelegate<TContext> prevDelegate = null,
+            UpdateDelegate<TContext> nextDelegate = null)
         {
             if (callbackButtonHandler is not null)
             {
                 node.CallbackButtonHandler =
                     (context, cancellationToken) =>
-                        callbackButtonHandler(node.Previous?.Data, node.Next?.Data, context, cancellationToken);
+                        callbackButtonHandler(prevDelegate, nextDelegate, context, cancellationToken);
             }
 
             if (replyKeyboardButtonHandler is not null)
             {
                 node.ReplyKeyboardButtonHandler =
                     (context, cancellationToken) =>
-                        replyKeyboardButtonHandler(node.Previous?.Data, node.Next?.Data, context, cancellationToken);
+                        replyKeyboardButtonHandler(prevDelegate, nextDelegate, context, cancellationToken);
             }
 
             if (updateHandler is not null)
             {
                 node.Handler =
                     (context, cancellationToken) =>
-                        updateHandler(node.Previous?.Data, node.Next?.Data, context, cancellationToken);
+                        updateHandler(prevDelegate, nextDelegate, context, cancellationToken);
             }
 
             if (stepHandler is not null)
             {
                 node.Step =
                     (context, cancellationToken) =>
-                        stepHandler(node.Previous?.Data, node.Next?.Data, context, cancellationToken);
+                        stepHandler(prevDelegate, nextDelegate, context, cancellationToken);
             }
         }
 
@@ -167,11 +175,24 @@ namespace TgBotFramework.UpdatePipeline
 
         public ILinkedStateMachine<TContext> Use<THandler>(
                THandler handler,
+               Func<LinkedNode<TContext>, UpdateDelegate<TContext>> extendedPrevDelegate = null,
+               Func<LinkedNode<TContext>, UpdateDelegate<TContext>> extendedNextDelegate = null,
                Func<LinkedNode<TContext>, UpdateDelegate<TContext>> executionSequence = null)
         {
             LinkedNode<TContext> newNode = new();
 
-            SeparateObjectToHandlers(newNode, handler);
+            UpdateDelegate<TContext> prevDelegate = extendedPrevDelegate != null
+                ? extendedPrevDelegate(newNode)
+                : async (context, cancellationToken) => await newNode.Previous?.Data(context, cancellationToken);
+
+            UpdateDelegate<TContext> nextDelegate = extendedNextDelegate != null
+                ? extendedNextDelegate(newNode)
+                : async (context, cancellationToken) => await newNode.Next?.Data(context, cancellationToken);
+
+            //UpdateDelegate<TContext> prevDelegate = extendedPrevDelegate != null ? extendedPrevDelegate(newNode) : newNode.Previous?.Data;
+            //UpdateDelegate<TContext> nextDelegate = extendedNextDelegate != null ? extendedNextDelegate(newNode) : newNode.Next?.Data;
+
+            SeparateObjectToHandlers(newNode, handler, prevDelegate, nextDelegate);
             newNode.Data = GetExecutionSequence(executionSequence)(newNode);
             AppendNode(newNode);
 
@@ -183,11 +204,24 @@ namespace TgBotFramework.UpdatePipeline
                ReplyUpdateDelegate<TContext> replyKeyboardButtonHandler,
                HandlerDelegate<TContext> updateHandler,
                StepDelegate<TContext> stepHandler,
+               Func<LinkedNode<TContext>, UpdateDelegate<TContext>> extendedPrevDelegate = null,
+               Func<LinkedNode<TContext>, UpdateDelegate<TContext>> extendedNextDelegate = null,
                Func<LinkedNode<TContext>, UpdateDelegate<TContext>> executionSequence = null)
         {
             LinkedNode<TContext> newNode = new();
 
-            SeparateObjectToHandlers(newNode, callbackButtonHandler, replyKeyboardButtonHandler, updateHandler, stepHandler);
+            UpdateDelegate<TContext> prevDelegate = extendedPrevDelegate != null
+                ? extendedPrevDelegate(newNode)
+                : async (context, cancellationToken) => await newNode.Previous?.Data(context, cancellationToken);
+
+            UpdateDelegate<TContext> nextDelegate = extendedNextDelegate != null
+                ? extendedNextDelegate(newNode)
+                : async (context, cancellationToken) => await newNode.Next?.Data(context, cancellationToken);
+
+            //UpdateDelegate<TContext> prevDelegate = extendedPrevDelegate != null ? extendedPrevDelegate(newNode) : newNode.Previous?.Data;
+            //UpdateDelegate<TContext> nextDelegate = extendedNextDelegate != null ? extendedNextDelegate(newNode) : newNode.Next?.Data;
+
+            SeparateObjectToHandlers(newNode, callbackButtonHandler, replyKeyboardButtonHandler, updateHandler, stepHandler,prevDelegate, nextDelegate);
             newNode.Data = GetExecutionSequence(executionSequence)(newNode);
             AppendNode(newNode);
 

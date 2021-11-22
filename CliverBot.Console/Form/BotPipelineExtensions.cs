@@ -44,7 +44,6 @@ namespace CliverBot.Console
                 }
 
                 context.UserState.CurrentState.CacheData += context.Update.Message.Text;
-                context.UserState.CurrentState.Step++;
 
                 await next(context);
             };
@@ -140,6 +139,8 @@ namespace CliverBot.Console
                     replyKeyboardButtonHandler: form.ReplyKeyboardHandler,
                     updateHandler: updateHandler,
                     stepHandler: stepHandler,
+                    extendedPrevDelegate: formHandler.ExtendedPrevDelegate,
+                    extendedNextDelegate: formHandler.ExtendedNextDelegate,
                     executionSequence: executionSequence);
             }
 
