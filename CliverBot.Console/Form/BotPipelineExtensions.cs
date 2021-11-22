@@ -16,13 +16,13 @@ namespace CliverBot.Console
 {
     public static class BotPipelineExtensions
     {
-        public static StepDelegate<TContext> GetNotifyMethod<TContext>(string notifyText)
+        public static StepDelegate<TContext> GetNotifyMethod<TContext>(string notifyText, IReplyMarkup? replyMarkup)
             where TContext : IUpdateContext
         {
             return async (prev, next, context, cancellationToken) =>
             {
                 context.UserState.CurrentState.Step++;
-                await context.Client.SendTextMessageAsync(context.Update.GetSenderId(), notifyText);
+                await context.Client.SendTextMessageAsync(context.Update.GetSenderId(), notifyText, replyMarkup: replyMarkup);
             };
         }
 
@@ -31,12 +31,15 @@ namespace CliverBot.Console
         {
             return async (prev, next, context, cancellationToken) =>
             {
-                foreach (var validationHandler in validationHandlers)
+                if (validationHandlers != null)
                 {
-                    if (!validationHandler.UpdatePredicate(context))
+                    foreach (var validationHandler in validationHandlers)
                     {
-                        await context.Client.SendTextMessageAsync(context.Update.GetSenderId(), validationHandler.ErrorMessage);
-                        return;
+                        if (!validationHandler.UpdatePredicate(context))
+                        {
+                            await context.Client.SendTextMessageAsync(context.Update.GetSenderId(), validationHandler.ErrorMessage);
+                            return;
+                        }
                     }
                 }
 
@@ -125,9 +128,11 @@ namespace CliverBot.Console
                 int notifyStep = form.Step;
                 int handlerStep = form.Step + 1;
 
+                IReplyMarkup replyMarkup = (IReplyMarkup) form.EntryReplyKeyboardMarkup ?? form.EntryInlineKeyboardMarkup;
+
                 var nodePredicate = NodePredicate<TContext>(notifyStep, handlerStep, formHandler.Stage);
                 var updateHandler = GetHandlerDelegate(form.ValidationHandlers);
-                var stepHandler = GetNotifyMethod<TContext>(form.InformationText);
+                var stepHandler = GetNotifyMethod<TContext>(form.InformationText, replyMarkup);
                 var executionSequence = GetExecuteSequence(nodePredicate, notifyStep, handlerStep);
 
                 pipeline.Use(

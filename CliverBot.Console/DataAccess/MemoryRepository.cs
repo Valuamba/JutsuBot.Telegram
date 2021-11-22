@@ -23,7 +23,7 @@ namespace CliverBot.Console.DataAccess
                 CurrentState = new State()
                 {
                     Step = 0,
-                    Stage = "Authorization"
+                    Stage = "menu"
                 }
             },
             new User()

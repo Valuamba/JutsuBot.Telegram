@@ -16,6 +16,7 @@ using TgBotFramework.UpdatePipeline;
 using CliverBot.Console.Handlers;
 using CliverBot.Console.DataAccess;
 using CliverBot.Console.Form.Authorization;
+using CliverBot.Console.Form.Partner;
 
 namespace CliverBot.Console
 {
@@ -40,8 +41,6 @@ namespace CliverBot.Console
                     services.AddBotService<EchoBot, BotExampleContext>(x => x
 
                         .UseLongPolling<PollingManager<BotExampleContext>>(new LongPollingOptions())
-                        .UseStates(Assembly.GetAssembly(typeof(EchoBot)))
-                        .UseCommands(Assembly.GetAssembly(typeof(EchoBot)))
 
                         .SetPipeline(pipelineBuilder => pipelineBuilder
 
@@ -50,9 +49,14 @@ namespace CliverBot.Console
                             .Stage("Authorization", branch => branch
                                 .AddForm(AuthFormPipeline.CreateAuthPipeline, memoryRepository)
                             )
-                            
                             .Stage("confirmAuthorization", branch => branch
-                                .Use(new ConfirmAuthorization())
+                                .Use(new ConfirmAuthorization(memoryRepository))
+                            )
+                            .Stage("addPartner", branch => branch
+                                .AddForm(PartnerFormPipeline.CreatePartmerPipeline, memoryRepository)
+                            )
+                            .Stage("menu", branch => branch
+                                .Use(new MenuHandler())
                             )
                         )
                     );

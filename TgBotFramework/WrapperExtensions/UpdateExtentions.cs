@@ -7,6 +7,82 @@ namespace TgBotFramework.WrapperExtensions
 {
     public static class UpdateExtensions
     {
+        public static void ClearUpdate(this Update update)
+        {
+            update.Message = new()
+            {
+                Chat = new()
+                {
+                    Id = update.GetSenderId()
+                },
+                From = new()
+                {
+                    Id = update.GetSenderId()
+                },
+            };
+            update.CallbackQuery = null;
+            update.ChannelPost = null;
+            update.ChatMember = null;
+            update.ChosenInlineResult = null;
+            update.EditedChannelPost = null;
+            update.EditedMessage = null;
+            update.InlineQuery = null;
+            update.MyChatMember = null;
+            update.Poll = null;
+            update.PollAnswer = null;
+            update.PreCheckoutQuery = null;
+            update.ShippingQuery = null;
+        }
+
+        public static Update EchoMessageUpdate(long senderId, long chatId, string messageText = null)
+        {
+            return new()
+            {
+                Message = new()
+                {
+                    Chat = new()
+                    {
+                        Id = chatId
+                    },
+                    From = new()
+                    {
+                        Id = senderId
+                    },
+                    Text = messageText
+                }
+            };
+        }
+
+        public static Update EchoCallbackQueryUpdate(long senderId, long chatId, string messageText = null, string callbackData = null, int? messageId = null)
+        {
+            Update update = new()
+            {
+                CallbackQuery = new CallbackQuery()
+                {
+                    From = new()
+                    {
+                        Id = senderId
+                    },
+                    Message = new()
+                    {
+                        Chat = new()
+                        {
+                            Id = chatId
+                        },
+                        Text = messageText
+                    },
+                    Data = callbackData,
+                }
+            };
+
+            if (messageId.HasValue)
+            {
+                update.CallbackQuery.Message.MessageId = messageId.Value;
+            }
+
+            return update;
+        }
+
         /// <summary>
         /// Returns sender ID for updates with sender ID, 0 otherwise. Exception in case of new update type.   
         /// </summary>

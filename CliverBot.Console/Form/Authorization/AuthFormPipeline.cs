@@ -77,8 +77,8 @@ namespace CliverBot.Console.Form.Authorization
                         Role = Role.Admin,
                         InlineKeyboardMarkup = new InlineKeyboardMarkup(new List<InlineKeyboardButton>()
                         {
-                            new InlineKeyboardButton("Confirm") { CallbackData = "Confirm"},
-                            new InlineKeyboardButton("Cancel") { CallbackData = "Cancel"},
+                            new InlineKeyboardButton("Confirm") { CallbackData = "395040322"},
+                            new InlineKeyboardButton("Cancel") { CallbackData = "395040322"},
                         })
                     }
                 }
