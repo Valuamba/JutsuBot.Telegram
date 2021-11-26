@@ -18,7 +18,7 @@ namespace TgBotFramework
             LongPollingOptions longPollingOptions)
             where T : BackgroundService, IPollingManager<TContext>;
 
-        IBotFrameworkBuilder<TContext> UseMiddleware<TMiddleware>() where TMiddleware : IUpdateHandler<TContext>;
+        IBotFrameworkBuilder<TContext> UseMiddleware<TMiddleware>() where TMiddleware : ICallbackButtonHandler<TContext>;
 
         IBotFrameworkBuilder<TContext> SetPipeline(
             Func<ILinkedStateMachine<TContext>, ILinkedStateMachine<TContext>> pipeBuilder);

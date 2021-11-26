@@ -8,6 +8,8 @@ using Microsoft.Extensions.Logging;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using TgBotFramework.UpdatePipeline;
+using Microsoft.Extensions.Hosting;
+using System.Reflection;
 
 namespace TgBotFramework
 {
@@ -24,8 +26,7 @@ namespace TgBotFramework
 
             return services;
         }
-        
-        
+
         public static void EnsureWebhookSet<TBot>(
             this IServiceProvider app
         )

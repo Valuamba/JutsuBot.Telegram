@@ -9,7 +9,7 @@ using TgBotFramework.WrapperExtensions;
 
 namespace CliverBot.Console.DataAccess
 {
-    public class MemoryRepositoryMiddleware : IUpdateHandler<BotExampleContext>
+    public class MemoryRepositoryMiddleware : ICallbackButtonHandler<BotExampleContext>
     {
         private readonly MemoryRepository _memoryRepository;
 

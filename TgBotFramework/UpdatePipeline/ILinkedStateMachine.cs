@@ -32,13 +32,13 @@ namespace TgBotFramework.UpdatePipeline
 
         void AppendNode(LinkedNode<TContext> node);
 
-        ILinkedStateMachine<TContext> Use<THandler>(
+        ILinkedStateMachine<TContext> Step<THandler>(
                THandler handler,
                Func<LinkedNode<TContext>, UpdateDelegate<TContext>> extendedPrevDelegate = null,
                Func<LinkedNode<TContext>, UpdateDelegate<TContext>> extendedNextDelegate = null,
                Func<LinkedNode<TContext>, UpdateDelegate<TContext>> executionSequence = null);
 
-        ILinkedStateMachine<TContext> Use(
+        ILinkedStateMachine<TContext> Step(
                CallbackUpdateDelegate<TContext> callbackButtonHandler,
                ReplyUpdateDelegate<TContext> replyKeyboardButtonHandler,
                HandlerDelegate<TContext> updateHandler,
@@ -46,5 +46,10 @@ namespace TgBotFramework.UpdatePipeline
                Func<LinkedNode<TContext>, UpdateDelegate<TContext>> extendedPrevDelegate = null,
                Func<LinkedNode<TContext>, UpdateDelegate<TContext>> extendedNextDelegate = null,
                Func<LinkedNode<TContext>, UpdateDelegate<TContext>> executionSequence = null);
+        ILinkedStateMachine<TContext> Step<THandler>(
+            Func<LinkedNode<TContext>, 
+            UpdateDelegate<TContext>> extendedPrevDelegate = null, 
+            Func<LinkedNode<TContext>, UpdateDelegate<TContext>> extendedNextDelegate = null, 
+            Func<LinkedNode<TContext>, UpdateDelegate<TContext>> executionSequence = null);
     }
 }

@@ -26,8 +26,8 @@ namespace Jutsu.Telegram.Bot.Tests
             BaseUpdateContext context = new() { UserState = new UserState() { CurrentState = new() { Step = 1 } } };
 
             //act
-            var linkedStateMachine = new LinkedStateMachine<BaseUpdateContext>();
-            linkedStateMachine.Use(null, null, handlerDelegateMock.Object, null);
+            var linkedStateMachine = new LinkedStateMachine<BaseUpdateContext>(new Microsoft.Extensions.DependencyInjection.ServiceCollection());
+            linkedStateMachine.Step(null, null, handlerDelegateMock.Object, null);
 
             linkedStateMachine.Head.Data(context);
 

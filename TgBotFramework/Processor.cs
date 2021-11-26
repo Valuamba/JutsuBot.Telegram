@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
+using Jutsu.Telegarm.Bot.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -42,10 +43,7 @@ namespace TgBotFramework
             _bot = bot;
             _updatesQueue = updatesQueue.Reader;
 
-            //var pipe = new BotPipelineBuilder<TContext>(_serviceProvider
-            //    .GetService<ILogger<BotPipelineBuilder<TContext>>>(), new ServiceCollection());
-            
-            var pipe = new LinkedStateMachine<TContext>();
+            var pipe = new LinkedStateMachine<TContext>(new());
 
             updatePipelineSettings.PipeSettings(pipe);
 
@@ -70,38 +68,30 @@ namespace TgBotFramework
             //updatePipelineSettings.PipeSettings(pipe);
 
             //TODO:
-            //CheckPipeline(pipe, serviceProvider);
+            CheckPipeline(pipe, serviceProvider);
 
             _updateHandler = pipe.Head?.Data;
         }
 
-        //private void CheckPipeline(BotPipelineBuilder<TContext> pipe, IServiceProvider serviceProvider)
-        //{
-        //    using var scope = serviceProvider.CreateScope();
-        //    foreach (var type in pipe.ServiceCollection)
-        //    {
-        //        Type typeToResolve = type.ImplementationType;
-        //        if (type.ServiceType.IsGenericTypeDefinition)
-        //        {
-        //            typeToResolve = type.ServiceType.MakeGenericType(typeof(TContext));
-        //        }
-                
-        //        if (scope.ServiceProvider.GetService(typeToResolve) == null)
-        //        {
-        //            _logger.LogCritical("There is no service type of {0} in DI", typeToResolve.FullName);
-        //            throw new PipelineException(
-        //                string.Format("There is no service type of {0} in DI", typeToResolve.FullName));
-        //        }
-        //    }
-        //}
+        private void CheckPipeline(LinkedStateMachine<TContext> pipe, IServiceProvider serviceProvider)
+        {
+            using var scope = serviceProvider.CreateScope();
+            foreach (var type in pipe.ServiceCollection)
+            {
+                Type typeToResolve = type.ImplementationType;
+                if (type.ServiceType.IsGenericTypeDefinition)
+                {
+                    typeToResolve = type.ServiceType.MakeGenericType(typeof(TContext));
+                }
 
-        
-        //private void SetUpStagesInPipeline(UpdatePipelineSettings<TContext> updatePipelineSettings, BotPipelineBuilder<TContext> pipe)
-        //{
-        //    // check for other
-        //    if (updatePipelineSettings.States.Count != 0)
-        //        pipe.CheckStages(updatePipelineSettings.States);
-        //}
+                if (scope.ServiceProvider.GetService(typeToResolve) == null)
+                {
+                    _logger.LogCritical("There is no service type of {0} in DI", typeToResolve.FullName);
+                    throw new PipelineException(
+                        string.Format("There is no service type of {0} in DI", typeToResolve.FullName));
+                }
+            }
+        }
 
         //private void SetUpCommandsInPipeline(UpdatePipelineSettings<TContext> updatePipelineSettings, BotPipelineBuilder<TContext> pipe)
         //{
@@ -128,6 +118,8 @@ namespace TgBotFramework
                     update.Services = scope.ServiceProvider;
                     update.Client = _bot.Client;
                     update.Bot = _bot;
+                    update.StageContext = new StageContext();
+
                     await _updateHandler((TContext) update, stoppingToken);
 
                     if (update.Result != null)

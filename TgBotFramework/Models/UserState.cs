@@ -29,5 +29,6 @@ namespace TgBotFramework
         public string CacheData { get; set; }
         public string Stage { get; set; }
         public long? Step { get; set; }
+        public int? MessageId { get; set; }
     }
 }

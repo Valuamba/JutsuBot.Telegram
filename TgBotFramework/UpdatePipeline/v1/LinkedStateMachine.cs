@@ -73,9 +73,9 @@ namespace TgBotFramework.UpdatePipeline.v1
         public void SeparateObjectToHandlers<THandler>(
             LinkedNode<TContext> node, 
             THandler handler)
-            where THandler : IUpdateHandler<TContext>
+            where THandler : ICallbackButtonHandler<TContext>
         {
-            if (handler is ICallbackButtonHandler<TContext> callbackButtonHandler)
+            if (handler is Interfaces.ICallbackButtonHandler<TContext> callbackButtonHandler)
             {
                 node.CallbackButtonHandler = (context, cancellationToken) =>
                     callbackButtonHandler.HandleCallbackButton(context, node.Previous?.Step, node.Next?.Step, cancellationToken);
@@ -93,7 +93,7 @@ namespace TgBotFramework.UpdatePipeline.v1
                     step.SendStepInformationAsync(context, cancellationToken);
             }
 
-            if (handler is IUpdateHandler<TContext> updateHandler)
+            if (handler is ICallbackButtonHandler<TContext> updateHandler)
             {
                 node.Handler = (context, cancellationToken) =>
                     updateHandler.HandleAsync(context, node.Previous?.Step, node.Next?.Step, cancellationToken);
@@ -156,7 +156,7 @@ namespace TgBotFramework.UpdatePipeline.v1
         public LinkedStateMachine<TContext> Use<THandler>(
                THandler handler,
                Func<LinkedNode<TContext>, UpdateDelegate<TContext>> executionSequence = null)
-           where THandler : IUpdateHandler<TContext>
+           where THandler : ICallbackButtonHandler<TContext>
         {
             LinkedNode<TContext> newNode = new();
 

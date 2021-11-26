@@ -20,25 +20,8 @@ namespace CliverBot.Console.Handlers
         {
             if (context.Update.IsCallbackCommand("addPartner"))
             {
-                var chanel = (Channel<IUpdateContext>)context.Services.GetService(typeof(Channel<IUpdateContext>));
-
-                context.UserState.PrevState = context.UserState.CurrentState;
-                context.UserState.CurrentState.Step = 0;
-                context.UserState.CurrentState.Stage = "addPartner";
-
-                var userId = context.Update.GetSenderId();
-
-                var update = UpdateExtensions.EchoMessageUpdate(userId, userId);
-
-                BotExampleContext newContext = new()
-                {
-                    Services = context.Services,
-                    Client = context.Client,
-                    Bot = context.Bot,
-                    Update = update
-                };
-
-                await chanel.Writer.WriteAsync(newContext, cancellationToken);
+                await context.Client.AnswerCallbackQueryAsync(context.Update.CallbackQuery.Id);
+                await context.LeaveStage("addPartner", cancellationToken);
 
                 return true;
             }

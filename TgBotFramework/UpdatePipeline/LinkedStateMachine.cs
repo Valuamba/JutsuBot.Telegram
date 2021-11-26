@@ -1,9 +1,12 @@
-﻿using System;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using TgBotFramework.Exceptions;
 using TgBotFramework.Interfaces;
 using TgBotFramework.WrapperExtensions;
 
@@ -25,8 +28,11 @@ namespace TgBotFramework.UpdatePipeline
             get { return this._count; }
         }
 
-        public LinkedStateMachine()
+        public ServiceCollection ServiceCollection { get; }
+
+        public LinkedStateMachine(ServiceCollection serviceCollection)
         {
+            ServiceCollection = serviceCollection;
             _count = 0;
             _firstNode = null;
             _lastNode = null;
@@ -35,7 +41,7 @@ namespace TgBotFramework.UpdatePipeline
         //TODO: добавить возможность брать стед из строки соответствующей сообщению.
         public ILinkedStateMachine<TContext> Stage(string stage, Action<ILinkedStateMachine<TContext>> branch)
         {
-            var stageBranch = new LinkedStateMachine<TContext>();
+            var stageBranch = new LinkedStateMachine<TContext>(ServiceCollection);
             branch(stageBranch);
 
             LinkedNode<TContext> newNode = new();
@@ -48,7 +54,10 @@ namespace TgBotFramework.UpdatePipeline
                 }
                 else
                 {
-                    await newNode.Next.Data(context, cancellationToken);
+                    if (newNode.Next is not null)
+                    {
+                        await newNode.Next.Data(context, cancellationToken);
+                    }
                 }
             };
 
@@ -73,8 +82,8 @@ namespace TgBotFramework.UpdatePipeline
                         }
                         else
                         {
-                            if ((node.CallbackButtonHandler == null || !await node.CallbackButtonHandler(context))
-                             && (node.ReplyKeyboardButtonHandler == null || !await node.ReplyKeyboardButtonHandler(context)))
+                            if ((node.CallbackButtonHandler == null         || !await node.CallbackButtonHandler(context))
+                                && (node.ReplyKeyboardButtonHandler == null || !await node.ReplyKeyboardButtonHandler(context)))
                             {
                                 if (node.Handler != null)
                                 {
@@ -93,7 +102,7 @@ namespace TgBotFramework.UpdatePipeline
             UpdateDelegate<TContext> prevDelegate = null,
             UpdateDelegate<TContext> nextDelegate = null)
         {
-            if (handler is ICallbackButtonHandler<TContext> callbackButtonHandler)
+            if (handler is Interfaces.ICallbackButtonHandler<TContext> callbackButtonHandler)
             {
                 node.CallbackButtonHandler = (context, cancellationToken) =>
                     callbackButtonHandler.HandleCallbackButton(context, prevDelegate, nextDelegate, cancellationToken);
@@ -111,10 +120,61 @@ namespace TgBotFramework.UpdatePipeline
                     step.SendStepInformationAsync(context, cancellationToken);
             }
 
-            if (handler is IUpdateHandler<TContext> updateHandler)
+            if (handler is ICallbackButtonHandler<TContext> updateHandler)
             {
                 node.Handler = (context, cancellationToken) =>
                     updateHandler.HandleAsync(context, prevDelegate, nextDelegate, cancellationToken);
+            }
+        }
+        public void SeparateObjectToHandlers<THandler>(
+           LinkedNode<TContext> node,
+           UpdateDelegate<TContext> prevDelegate = null,
+           UpdateDelegate<TContext> nextDelegate = null)
+        {
+            var handlerInterfaces = typeof(THandler).GetInterfaces();
+
+            if (handlerInterfaces.Any(i => i == typeof(Interfaces.ICallbackButtonHandler<TContext>)))
+            {
+                node.CallbackButtonHandler = (context, cancellationToken) =>
+                {
+                    if (context.Services.GetService(typeof(THandler)) is Interfaces.ICallbackButtonHandler<TContext> callbackButtonHandler)
+                        return callbackButtonHandler.HandleCallbackButton(context, prevDelegate, nextDelegate, cancellationToken);
+                    else
+                        throw new PipelineException($"Unable to resolve handler of type {typeof(THandler).FullName}");
+                };  
+            }
+
+            if (handlerInterfaces.Any(i => i == typeof(IReplyKeyboardButtonHandler<TContext>)))
+            {
+                node.ReplyKeyboardButtonHandler = (context, cancellationToken) =>
+                {
+                    if (context.Services.GetService(typeof(THandler)) is IReplyKeyboardButtonHandler<TContext> replyKeyboardButtonHandler)
+                        return replyKeyboardButtonHandler.HandleReplyKeyboardButton(context, prevDelegate, nextDelegate, cancellationToken);
+                    else
+                        throw new PipelineException($"Unable to resolve handler of type {typeof(THandler).FullName}");
+                };
+            }
+
+            if (handlerInterfaces.Any(i => i == typeof(IStep<TContext>)))
+            {
+                node.Step = (context, cancellationToken) =>
+                {
+                    if (context.Services.GetService(typeof(THandler)) is IStep<TContext> step)
+                        return step.SendStepInformationAsync(context, cancellationToken);
+                    else
+                        throw new PipelineException($"Unable to resolve handler of type {typeof(THandler).FullName}");
+                };
+            }
+
+            if (handlerInterfaces.Any(i => i == typeof(ICallbackButtonHandler<TContext>)))
+            {
+                node.Handler = (context, cancellationToken) =>
+                {
+                    if (context.Services.GetService(typeof(THandler)) is ICallbackButtonHandler<TContext> updateHandler)
+                        return updateHandler.HandleAsync(context, prevDelegate, nextDelegate, cancellationToken);
+                    else
+                        throw new PipelineException($"Unable to resolve handler of type {typeof(THandler).FullName}");
+                };
             }
         }
 
@@ -173,12 +233,13 @@ namespace TgBotFramework.UpdatePipeline
             _count++;
         }
 
-        public ILinkedStateMachine<TContext> Use<THandler>(
+        public ILinkedStateMachine<TContext> Step<THandler>(
                THandler handler,
                Func<LinkedNode<TContext>, UpdateDelegate<TContext>> extendedPrevDelegate = null,
                Func<LinkedNode<TContext>, UpdateDelegate<TContext>> extendedNextDelegate = null,
                Func<LinkedNode<TContext>, UpdateDelegate<TContext>> executionSequence = null)
         {
+            ServiceCollection.TryAddScoped(typeof(THandler));
             LinkedNode<TContext> newNode = new();
 
             UpdateDelegate<TContext> prevDelegate = extendedPrevDelegate != null
@@ -189,9 +250,6 @@ namespace TgBotFramework.UpdatePipeline
                 ? extendedNextDelegate(newNode)
                 : async (context, cancellationToken) => await newNode.Next?.Data(context, cancellationToken);
 
-            //UpdateDelegate<TContext> prevDelegate = extendedPrevDelegate != null ? extendedPrevDelegate(newNode) : newNode.Previous?.Data;
-            //UpdateDelegate<TContext> nextDelegate = extendedNextDelegate != null ? extendedNextDelegate(newNode) : newNode.Next?.Data;
-
             SeparateObjectToHandlers(newNode, handler, prevDelegate, nextDelegate);
             newNode.Data = GetExecutionSequence(executionSequence)(newNode);
             AppendNode(newNode);
@@ -199,7 +257,30 @@ namespace TgBotFramework.UpdatePipeline
             return this;
         }
 
-        public ILinkedStateMachine<TContext> Use(
+        public ILinkedStateMachine<TContext> Step<THandler>(
+              Func<LinkedNode<TContext>, UpdateDelegate<TContext>> extendedPrevDelegate = null,
+              Func<LinkedNode<TContext>, UpdateDelegate<TContext>> extendedNextDelegate = null,
+              Func<LinkedNode<TContext>, UpdateDelegate<TContext>> executionSequence = null)
+        {
+            ServiceCollection.TryAddScoped(typeof(THandler));
+            LinkedNode<TContext> newNode = new();
+
+            UpdateDelegate<TContext> prevDelegate = extendedPrevDelegate != null
+                ? extendedPrevDelegate(newNode)
+                : async (context, cancellationToken) => await newNode.Previous?.Data(context, cancellationToken);
+
+            UpdateDelegate<TContext> nextDelegate = extendedNextDelegate != null
+                ? extendedNextDelegate(newNode)
+                : async (context, cancellationToken) => await newNode.Next?.Data(context, cancellationToken);
+
+            SeparateObjectToHandlers<THandler>(newNode, prevDelegate, nextDelegate);
+            newNode.Data = GetExecutionSequence(executionSequence)(newNode);
+            AppendNode(newNode);
+
+            return this;
+        }
+
+        public ILinkedStateMachine<TContext> Step(
                CallbackUpdateDelegate<TContext> callbackButtonHandler,
                ReplyUpdateDelegate<TContext> replyKeyboardButtonHandler,
                HandlerDelegate<TContext> updateHandler,
@@ -217,9 +298,6 @@ namespace TgBotFramework.UpdatePipeline
             UpdateDelegate<TContext> nextDelegate = extendedNextDelegate != null
                 ? extendedNextDelegate(newNode)
                 : async (context, cancellationToken) => await newNode.Next?.Data(context, cancellationToken);
-
-            //UpdateDelegate<TContext> prevDelegate = extendedPrevDelegate != null ? extendedPrevDelegate(newNode) : newNode.Previous?.Data;
-            //UpdateDelegate<TContext> nextDelegate = extendedNextDelegate != null ? extendedNextDelegate(newNode) : newNode.Next?.Data;
 
             SeparateObjectToHandlers(newNode, callbackButtonHandler, replyKeyboardButtonHandler, updateHandler, stepHandler,prevDelegate, nextDelegate);
             newNode.Data = GetExecutionSequence(executionSequence)(newNode);

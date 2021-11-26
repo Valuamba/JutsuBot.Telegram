@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
 using TgBotFramework;
 using TgBotFramework.UpdatePipeline;
@@ -18,6 +19,7 @@ namespace CliverBot.Console.Form
         public int Step { get; set; }
         public string PropertyName { get; set; }
         public string InformationText { get; set; }
+        public UpdateType HandledUpdateType { get; set; }
         public InlineKeyboardMarkup EntryInlineKeyboardMarkup { get; set; }
         public ReplyKeyboardMarkup EntryReplyKeyboardMarkup { get; set; }
         public ReplyUpdateDelegate<TContext> ReplyKeyboardHandler { get; set; }

@@ -26,17 +26,12 @@ namespace CliverBot.Console.Handlers
         {
             if(context.Update.Type == Telegram.Bot.Types.Enums.UpdateType.CallbackQuery)
             {
-                var chanel = (Channel<IUpdateContext>)context.Services.GetService(typeof(Channel<IUpdateContext>));
-
                 var userId = Convert.ToInt64(context.Update.CallbackQuery.Data);
                 var user = _memoryRepository.GetUserById(userId);
 
-                user.CurrentState.Step = 0;
-                user.CurrentState.Stage = "menu";
-
                 var update = UpdateExtensions.EchoMessageUpdate(userId, userId);
 
-                BotExampleContext newContext = new()
+                BotExampleContext contextOfModifiedUser = new()
                 {
                     Services = context.Services,
                     Client = context.Client,
@@ -44,7 +39,7 @@ namespace CliverBot.Console.Handlers
                     Update = update
                 };
 
-                await chanel.Writer.WriteAsync(newContext, cancellationToken);
+                await contextOfModifiedUser.LeaveStage("menu", cancellationToken);
 
                 return false;
             }

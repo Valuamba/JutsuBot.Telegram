@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace TgBotFramework.UpdatePipeline
 {
-    public class MapWhenMiddleware<TContext> : IUpdateHandler<TContext>
+    public class MapWhenMiddleware<TContext> : ICallbackButtonHandler<TContext>
         where TContext : IUpdateContext
     {
         private readonly UpdateDelegate<TContext> _branch;

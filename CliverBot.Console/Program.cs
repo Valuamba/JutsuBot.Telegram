@@ -36,6 +36,11 @@ namespace CliverBot.Console
                     services.AddLogging();
                     services.Configure<BotSettings>(config.GetSection(nameof(EchoBot)));
 
+                    services.AddScoped<MemoryRepositoryMiddleware>();
+                    services.AddScoped<MenuHandler>();
+                    services.AddScoped<ConfirmAuthorization>();
+                    services.AddSingleton<MemoryRepository>();
+
                     MemoryRepository memoryRepository = new();
 
                     services.AddBotService<EchoBot, BotExampleContext>(x => x
@@ -44,19 +49,19 @@ namespace CliverBot.Console
 
                         .SetPipeline(pipelineBuilder => pipelineBuilder
 
-                            .Use(new MemoryRepositoryMiddleware(memoryRepository), executionSequence: (node) => node.Handler)
+                            .Step<MemoryRepositoryMiddleware>(executionSequence: (node) => node.Handler)
 
                             .Stage("Authorization", branch => branch
-                                .AddForm(AuthFormPipeline.CreateAuthPipeline, memoryRepository)
+                                .AddForm(AuthFormPipeline.CreateAuthPipeline)
                             )
                             .Stage("confirmAuthorization", branch => branch
-                                .Use(new ConfirmAuthorization(memoryRepository))
+                                .Step<ConfirmAuthorization>()
                             )
                             .Stage("addPartner", branch => branch
-                                .AddForm(PartnerFormPipeline.CreatePartmerPipeline, memoryRepository)
+                                .AddForm(PartnerFormPipeline.CreatePartmerPipeline)
                             )
                             .Stage("menu", branch => branch
-                                .Use(new MenuHandler())
+                                .Step<MenuHandler>()
                             )
                         )
                     );

@@ -12,7 +12,7 @@ namespace TgBotFramework
     /// <summary>
     /// Base handler implementation for a command such as "/start"
     /// </summary>
-    public abstract class CommandBase<TContext> : IUpdateHandler<TContext> where TContext : IUpdateContext
+    public abstract class CommandBase<TContext> : ICallbackButtonHandler<TContext> where TContext : IUpdateContext
     {
         public abstract Task HandleAsync(TContext context, UpdateDelegate<TContext> next, string[] args, CancellationToken cancellationToken);
 

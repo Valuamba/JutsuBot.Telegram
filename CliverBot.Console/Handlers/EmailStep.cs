@@ -11,7 +11,7 @@ using TgBotFramework.WrapperExtensions;
 
 namespace CliverBot.Console.Handlers
 {
-    public class EmailStep : IUpdateHandler<BotExampleContext>, IStep<BotExampleContext>
+    public class EmailStep : TgBotFramework.ICallbackButtonHandler<BotExampleContext>, IStep<BotExampleContext>
     {
         public async Task HandleAsync(BotExampleContext context, UpdateDelegate<BotExampleContext> prev, UpdateDelegate<BotExampleContext> next, CancellationToken cancellationToken)
         {

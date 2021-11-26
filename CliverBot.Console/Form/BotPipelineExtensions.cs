@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Telegram.Bot;
+using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
 using TgBotFramework;
 using TgBotFramework.UpdatePipeline;
@@ -26,26 +27,29 @@ namespace CliverBot.Console
             };
         }
 
-        public static HandlerDelegate<TContext> GetHandlerDelegate<TContext>(List<ValidationHandler<TContext>> validationHandlers)
+        public static HandlerDelegate<TContext> GetHandlerDelegate<TContext>(UpdateType expectedUpdateType, List<ValidationHandler<TContext>> validationHandlers)
              where TContext : IUpdateContext
         {
             return async (prev, next, context, cancellationToken) =>
             {
-                if (validationHandlers != null)
+                if (context.Update.Type == expectedUpdateType)
                 {
-                    foreach (var validationHandler in validationHandlers)
+                    if (validationHandlers != null)
                     {
-                        if (!validationHandler.UpdatePredicate(context))
+                        foreach (var validationHandler in validationHandlers)
                         {
-                            await context.Client.SendTextMessageAsync(context.Update.GetSenderId(), validationHandler.ErrorMessage);
-                            return;
+                            if (!validationHandler.UpdatePredicate(context))
+                            {
+                                await context.Client.SendTextMessageAsync(context.Update.GetSenderId(), validationHandler.ErrorMessage);
+                                return;
+                            }
                         }
                     }
+
+                    context.UserState.CurrentState.CacheData += context.Update.Message.Text;
+
+                    await next(context);
                 }
-
-                context.UserState.CurrentState.CacheData += context.Update.Message.Text;
-
-                await next(context);
             };
         }
 
@@ -89,11 +93,13 @@ namespace CliverBot.Console
             };
         }
 
-        private static StepDelegate<TContext> GetConfirmStepDelegate<TContext>(string confirmationInfo, MemoryRepository memoryRepository, List<ResponsibleConfirmation> responsibleConfirmations)
+        private static StepDelegate<TContext> GetConfirmStepDelegate<TContext>(string confirmationInfo, List<ResponsibleConfirmation> responsibleConfirmations)
             where TContext : IUpdateContext
         {
             return async (prev, next, context, cancellationToken) =>
             {
+                var memoryRepository = (MemoryRepository)context.Services.GetService(typeof(MemoryRepository));
+
                 await context.Client.SendTextMessageAsync(context.Update.GetSenderId(), confirmationInfo);
                 context.UserState.CurrentState.Step++;
 
@@ -113,12 +119,11 @@ namespace CliverBot.Console
             };
         }
 
-        public static ILinkedStateMachine<TContext> AddForm<TContext>(this ILinkedStateMachine<TContext> pipeline, Action<IFormHandlerBuilder<TContext>> formBuilderConfigurator, MemoryRepository memoryRepository)
+        public static ILinkedStateMachine<TContext> AddForm<TContext>(this ILinkedStateMachine<TContext> pipeline, Action<IFormHandlerBuilder<TContext>> formBuilderConfigurator)
             where TContext : IUpdateContext
         {
             FormHandlerBuilder<TContext> formHandler = new();
             formBuilderConfigurator(formHandler);
-            LinkedStateMachine<TContext> stateMachine = new();
 
             foreach (var form in formHandler.FormFields)
             {
@@ -130,11 +135,11 @@ namespace CliverBot.Console
                 IReplyMarkup replyMarkup = (IReplyMarkup) form.EntryReplyKeyboardMarkup ?? form.EntryInlineKeyboardMarkup;
 
                 var nodePredicate = NodePredicate<TContext>(notifyStep, handlerStep, formHandler.Stage);
-                var updateHandler = GetHandlerDelegate(form.ValidationHandlers);
+                var updateHandler = GetHandlerDelegate(form.HandledUpdateType, form.ValidationHandlers);
                 var stepHandler = GetNotifyMethod<TContext>(form.InformationText, replyMarkup);
                 var executionSequence = GetExecuteSequence(nodePredicate, notifyStep, handlerStep);
 
-                pipeline.Use(
+                pipeline.Step(
                     callbackButtonHandler: form.CallbackKeyboardHandler,
                     replyKeyboardButtonHandler: form.ReplyKeyboardHandler,
                     updateHandler: updateHandler,
@@ -145,9 +150,9 @@ namespace CliverBot.Console
             }
 
             var confirmationInfo = formHandler.ConfiramtionInfo;
-            var confirmAuthorizationDelegate = GetConfirmStepDelegate<TContext>(confirmationInfo.ConfirmationText, memoryRepository, confirmationInfo.ResponsiblesToConfirmation);
+            var confirmAuthorizationDelegate = GetConfirmStepDelegate<TContext>(confirmationInfo.ConfirmationText, confirmationInfo.ResponsiblesToConfirmation);
 
-            pipeline.Use(
+            pipeline.Step(
                     callbackButtonHandler: null,
                     replyKeyboardButtonHandler: null,
                     updateHandler: null,

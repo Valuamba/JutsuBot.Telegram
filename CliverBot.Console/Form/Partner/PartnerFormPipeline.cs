@@ -25,6 +25,7 @@ namespace CliverBot.Console.Form.Partner
                     Step = 0,
                     PropertyName = nameof(PartnerModel.BusinessName),
                     InformationText = "Write your partner business name.",
+                    HandledUpdateType = UpdateType.Message,
                     ValidationHandlers = new List<ValidationHandler<TContext>>()
                     {
                         new ValidationHandler<TContext>()
@@ -46,6 +47,7 @@ namespace CliverBot.Console.Form.Partner
                     Step = 2,
                     PropertyName = nameof(PartnerModel.Town),
                     InformationText = "Write partner town.",
+                    HandledUpdateType = UpdateType.Message,
                     ValidationHandlers = new List<ValidationHandler<TContext>>()
                     {
                         new ValidationHandler<TContext>()
@@ -62,6 +64,7 @@ namespace CliverBot.Console.Form.Partner
                     Step = 4,
                     PropertyName = nameof(PartnerModel.Address),
                     InformationText = "Write partner address.",
+                    HandledUpdateType = UpdateType.Message,
                     ValidationHandlers = new List<ValidationHandler<TContext>>()
                     {
                         new ValidationHandler<TContext>()
@@ -78,6 +81,7 @@ namespace CliverBot.Console.Form.Partner
                     Step = 6,
                     PropertyName = nameof(PartnerModel.Mall),
                     InformationText = "Write partner mall.",
+                    HandledUpdateType = UpdateType.Message,
                     ValidationHandlers = new List<ValidationHandler<TContext>>()
                     {
                         new ValidationHandler<TContext>()
@@ -94,6 +98,7 @@ namespace CliverBot.Console.Form.Partner
                     Step = 8,
                     PropertyName = nameof(PartnerModel.CountOfUnitsOnAutumnAndWinter),
                     InformationText = "Write partner winter and autumn.",
+                    HandledUpdateType = UpdateType.Message,
                     ValidationHandlers = new List<ValidationHandler<TContext>>()
                     {
                         new ValidationHandler<TContext>()
@@ -111,6 +116,7 @@ namespace CliverBot.Console.Form.Partner
                     Step = 10,
                     PropertyName = nameof(PartnerModel.CountOfUnitsOnSpring),
                     InformationText = "Write partner spring.",
+                    HandledUpdateType = UpdateType.Message,
                     ValidationHandlers = new List<ValidationHandler<TContext>>()
                     {
                         new ValidationHandler<TContext>()
@@ -128,6 +134,7 @@ namespace CliverBot.Console.Form.Partner
                     Step = 12,
                     PropertyName = nameof(PartnerModel.CountOfUnitsOnSummer),
                     InformationText = "Write partner summer.",
+                    HandledUpdateType = UpdateType.Message,
                     ValidationHandlers = new List<ValidationHandler<TContext>>()
                     {
                         new ValidationHandler<TContext>()
@@ -144,6 +151,7 @@ namespace CliverBot.Console.Form.Partner
                 {
                     Step = 14,
                     PropertyName = nameof(PartnerModel.EMail),
+                    HandledUpdateType = UpdateType.Message,
                     InformationText = "Write partner email.",
                     ReplyKeyboardHandler = HandleSetBackAndSkipButtons
                 },
@@ -151,6 +159,7 @@ namespace CliverBot.Console.Form.Partner
                 {
                     Step = 16,
                     PropertyName = nameof(PartnerModel.MobilePhone),
+                    HandledUpdateType = UpdateType.Message,
                     InformationText = "Write partner phone.",
                     ValidationHandlers = new List<ValidationHandler<TContext>>()
                     {
@@ -194,7 +203,8 @@ namespace CliverBot.Console.Form.Partner
                 new List<KeyboardButton> { "❌ Отмена" },
             })
         {
-            ResizeKeyboard = true
+            ResizeKeyboard = true,
+            OneTimeKeyboard = true
         };
 
         public static ReplyKeyboardMarkup GetSetBackKeyboardMarkup => new ReplyKeyboardMarkup(
@@ -204,8 +214,9 @@ namespace CliverBot.Console.Form.Partner
                 new List<KeyboardButton> { "❌ Отмена" },
             })
             {
-                ResizeKeyboard = true
-            }; 
+                ResizeKeyboard = true,
+                OneTimeKeyboard = true
+        }; 
 
         public static ReplyKeyboardMarkup GetSetBackandSkiptKeyboardMarkup => new ReplyKeyboardMarkup(
             new List<IEnumerable<KeyboardButton>>
@@ -215,7 +226,8 @@ namespace CliverBot.Console.Form.Partner
                 new List<KeyboardButton> { "❌ Отмена" },
             })
         {
-            ResizeKeyboard = true
+            ResizeKeyboard = true,
+            OneTimeKeyboard = true
         };
 
         public static async Task<bool> HandleSetBackAndSkipButtons<TContext>(UpdateDelegate<TContext> prev, UpdateDelegate<TContext> next, TContext context, CancellationToken cancellationToken)
@@ -229,7 +241,8 @@ namespace CliverBot.Console.Form.Partner
 
                     case "⤵️ Пропустить": await next(context); return true;
 
-                    //case "❌ Отмена": await RedirectToStage<MenuStage>(context); break;
+                    case "❌ Отмена": 
+                        await context.LeaveStage("menu", cancellationToken); return true;
 
                     default: return false;
                 }
@@ -244,8 +257,7 @@ namespace CliverBot.Console.Form.Partner
             {
                 switch (context.Update.Message.Text)
                 {
-                    //Как покидать стейдж и куда ухожить?
-                    case "❌ Отмена": /*await RedirectToStage<PartnerMenuStage>(context);*/ break;
+                    case "❌ Отмена": await context.LeaveStage("menu", cancellationToken); return true;
 
                     default: return false;
                 }
@@ -262,8 +274,7 @@ namespace CliverBot.Console.Form.Partner
                 {
                     case "↩️ Назад": await prev(context, cancellationToken); return true;
 
-                    //Как покидать стейдж и куда ухожить?
-                    case "❌ Отмена": /*await RedirectToStage<PartnerMenuStage>(context);*/ break;
+                    case "❌ Отмена": await context.LeaveStage("menu", cancellationToken); return true;
 
                     default: return false;
                 }
