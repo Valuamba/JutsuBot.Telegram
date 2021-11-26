@@ -53,7 +53,8 @@ namespace Htlv.Parser.Pagination
                 updateHandler: updateHandler,
                 stepHandler: notifyDelegate,
                 extendedNextDelegate: selectorInfo.ExtendedNextDelegate,
-                extendedPrevDelegate:selectorInfo.ExtendedPrevDelegate);
+                extendedPrevDelegate:selectorInfo.ExtendedPrevDelegate,
+                executionSequence: selectorInfo.ExecutionSequence);
 
             return pipeline;
         }

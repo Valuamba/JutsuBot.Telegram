@@ -59,14 +59,13 @@ namespace Htlv.Parser.Steps.MatchStage
 
                 config.ExtendedPrevDelegate = (node) => async (context, cancellationToken) =>
                 {
-                    context.Update.ClearUpdate();
+                    //context.Update.ClearUpdate();
                     context.UserState.CurrentState.Step -= 3;
                     await node.Previous?.Data(context, cancellationToken);
                 };
 
                 config.ExtendedNextDelegate = (node) => async (context, cancellationToken) =>
                 {
-                    context.Update.ClearUpdate();
                     context.UserState.CurrentState.Step++;
                     await node.Next?.Data(context, cancellationToken);
                 };
@@ -78,6 +77,8 @@ namespace Htlv.Parser.Steps.MatchStage
                         MaxElementsCount = 8,
                     };
                 };
+
+                config.ExecutionSequence = SomeExt.GetExecuteSequence<TContext>(0, 1);
             });
 
 
@@ -94,6 +95,15 @@ namespace Htlv.Parser.Steps.MatchStage
                     var matchId = context.Update.TrimCallbackCommand(Match_CallData);
 
                     context.StageContext.Parameters = $"matchId/{matchId}";
+                    //TODO: UpdateType.ChangeCurrentMessage
+
+                    //context.StageContext.UpdateType = UpdateType.CallbackQuery;
+                    //context.StageContext.SenderId = context.Update.GetSenderId();
+                    //context.StageContext.ChatId = context.Update.GetSenderId();
+                    //context.StageContext.MessageId = context.Update.CallbackQuery.Message.MessageId;
+
+                    //context.Update.ClearUpdate();
+
 
                     await next(context, cancellationToken);
                 }

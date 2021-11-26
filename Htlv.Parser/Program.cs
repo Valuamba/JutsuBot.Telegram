@@ -44,6 +44,7 @@ namespace Htlv.Parser
                     services.AddScoped<MatchRepository>();
                     services.AddScoped<UserRepository>();
                     services.AddScoped<MatchStep>();
+                    services.AddScoped<NotifyStep>();
 
                     var provider = config.GetValue("Provider", "SqlServer");
 
@@ -79,7 +80,8 @@ namespace Htlv.Parser
 
                             .Stage("selectMatch", branch => branch
                                 .AddMatchSelector()
-                                .Step<MatchStep>()
+                                .Step<MatchStep>(executionSequence: SomeExt.GetExecuteSequence<BotExampleContext>(2, 3))
+                                .Step<NotifyStep>(executionSequence: SomeExt.GetExecuteSequence<BotExampleContext>(4, 5))
                             )
                         )
                     );

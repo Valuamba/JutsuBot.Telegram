@@ -7,9 +7,9 @@ namespace TgBotFramework.WrapperExtensions
 {
     public static class UpdateExtensions
     {
-        public static void ClearUpdate(this Update update)
+        public static void ClearUpdate(this Update update, UpdateType updateType = UpdateType.Message)
         {
-            update.Message = new()
+            update.Message = updateType == UpdateType.Message ? new()
             {
                 Chat = new()
                 {
@@ -19,7 +19,7 @@ namespace TgBotFramework.WrapperExtensions
                 {
                     Id = update.GetSenderId()
                 },
-            };
+            } : null;
             update.CallbackQuery = null;
             update.ChannelPost = null;
             update.ChatMember = null;

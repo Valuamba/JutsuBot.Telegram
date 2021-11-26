@@ -23,6 +23,6 @@ namespace Htlv.Parser.Pagination.Models
         public Action<PaginationInfo> PaginationConfigurator { get; set; }
         public Func<LinkedNode<TContext>, UpdateDelegate<TContext>> ExtendedPrevDelegate { get; set; }
         public Func<LinkedNode<TContext>, UpdateDelegate<TContext>> ExtendedNextDelegate { get; set; }
-
+        public Func<LinkedNode<TContext>, UpdateDelegate<TContext>> ExecutionSequence { get; set; }
     }
 }

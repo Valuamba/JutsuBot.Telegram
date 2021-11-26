@@ -30,8 +30,15 @@ namespace Htlv.Parser.Steps.MatchStage
         {
             if(context.Update.IsCallbackCommand("notify"))
             {
-
+                context.UserState.CurrentState.Step++;
+                await next(context, cancellationToken);
                 return true;
+            }
+            else if(context.Update.IsCallbackCommand("back"))
+            {
+                context.UserState.CurrentState.Step -= 3;
+                context.Update.CallbackQuery.Data = null;
+                await prev(context, cancellationToken);
             }
 
             return false;
@@ -53,14 +60,18 @@ namespace Htlv.Parser.Steps.MatchStage
                     await context.Client.EditMessageTextAsync(context.Update.GetSenderId(), context.Update.CallbackQuery.Message.MessageId, matchMessage,
                         replyMarkup: new InlineKeyboardMarkup(new List<List<InlineKeyboardButton>>()
                         {
-                            new List<InlineKeyboardButton>() { new InlineKeyboardButton("Напомнить") { CallbackData = "notify"} },
+                            new List<InlineKeyboardButton>() { new InlineKeyboardButton("Напомнить") { CallbackData = $"notify/matchId/{matchId}"} },
                             new List<InlineKeyboardButton>() { new InlineKeyboardButton("Назад") { CallbackData = "back"} },
                         }));
                 } 
                 else if(On.Message(context))
                 {
                     context.UserState.CurrentState.Step++;
-                    await context.Client.EditMessageTextAsync(context.Update.GetSenderId(), context.Update.CallbackQuery.Message.MessageId, matchMessage);
+                    await context.Client.SendTextMessageAsync(context.Update.GetSenderId(), matchMessage, 
+                        replyMarkup: new InlineKeyboardMarkup(new List<List<InlineKeyboardButton>>()
+                        {
+                            new List<InlineKeyboardButton>() { new InlineKeyboardButton("Напомнить") { CallbackData = $"notify/matchId/{matchId}" } },
+                        }));
                 }
             }
         }
@@ -68,10 +79,10 @@ namespace Htlv.Parser.Steps.MatchStage
         public static string MapMatchToString(CSGOMatch match)
         {
             string matchMessage =
-                $"🕑 Дата: {match.MatchTime.ToString("dd dddd yyyy HH:mm")}" +
-                $"🔄 Формат игры: {match.MatchMeta}" +
-                $"🆚 Команды: {match.FirstTeam} vs {match.SecondTeam}" +
-                $"📛 Турнир: {match.MatchEvent}";
+                $"🕑 Дата: {match.MatchTime.ToString("dd dddd yyyy HH:mm")}\r\n" +
+                $"🔄 Формат игры: {match.MatchMeta}\r\n" +
+                $"🆚 Команды: {match.FirstTeam} vs {match.SecondTeam}\r\n" +
+                $"📛 Турнир: {match.MatchEvent}\r\n";
 
             return matchMessage;
         }
