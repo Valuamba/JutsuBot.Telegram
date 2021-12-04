@@ -16,7 +16,7 @@ using TgBotFramework.UpdatePipeline;
 using CliverBot.Console.Handlers;
 using CliverBot.Console.DataAccess;
 using CliverBot.Console.Form.Authorization;
-using CliverBot.Console.Form.Partner;
+using Htlv.Parser.DataAccess.EF;
 
 namespace CliverBot.Console
 {
@@ -36,10 +36,12 @@ namespace CliverBot.Console
                     services.AddLogging();
                     services.Configure<BotSettings>(config.GetSection(nameof(EchoBot)));
 
-                    services.AddScoped<MemoryRepositoryMiddleware>();
+                    services.AddScoped<UserStateMapperMiddleware<BotExampleContext>>();
+                    services.AddScoped<StateMapperMiddleware<BotExampleContext>>();
                     services.AddScoped<MenuHandler>();
                     services.AddScoped<ConfirmAuthorization>();
                     services.AddSingleton<MemoryRepository>();
+                    services.AddSingleton<StateRepository>();
 
                     MemoryRepository memoryRepository = new();
 
@@ -49,17 +51,16 @@ namespace CliverBot.Console
 
                         .SetPipeline(pipelineBuilder => pipelineBuilder
 
-                            .Step<MemoryRepositoryMiddleware>(executionSequence: (node) => node.Handler)
+                            .Step<UserStateMapperMiddleware<BotExampleContext>>(executionSequence: (node) => node.Handler)
+                            .Step<StateMapperMiddleware<BotExampleContext>>(executionSequence: (node) => node.Handler)
 
                             .Stage("Authorization", branch => branch
-                                .AddForm(AuthFormPipeline.CreateAuthPipeline)
+                                .CreateAuthPipeline()
                             )
                             .Stage("confirmAuthorization", branch => branch
                                 .Step<ConfirmAuthorization>()
                             )
-                            .Stage("addPartner", branch => branch
-                                .AddForm(PartnerFormPipeline.CreatePartmerPipeline)
-                            )
+                            
                             .Stage("menu", branch => branch
                                 .Step<MenuHandler>()
                             )

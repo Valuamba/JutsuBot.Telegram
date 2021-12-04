@@ -10,6 +10,5 @@ namespace Htlv.Parser.Pagination
     public class PaginationInfo
     {
         public IPagination Pagination { get; set; }
-
     }
 }

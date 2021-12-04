@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CliverBot.Console.DI;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,6 +10,7 @@ namespace CliverBot.Console
 {
     public class BotExampleContext : BaseUpdateContext
     {
+        public ElementClient<BaseBot> ElementClient { get; set; }
         public UserPrivateInfo Info { get; set; }
     }
 

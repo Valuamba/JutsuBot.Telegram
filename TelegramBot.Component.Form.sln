@@ -9,7 +9,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CliverBot.Console", "Cliver
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Jutsu.Telegram.Bot.Tests", "Jutsu.Telegram.Bot.Tests\Jutsu.Telegram.Bot.Tests.csproj", "{262EFB3B-87D8-44F2-9CBF-0B90D4B9E62E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Htlv.Parser", "Htlv.Parser\Htlv.Parser.csproj", "{62BE6A4C-C21F-4B3F-8153-3450191F5CC0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Htlv.Parser", "Htlv.Parser\Htlv.Parser.csproj", "{62BE6A4C-C21F-4B3F-8153-3450191F5CC0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JutsuBot.Elements", "JutsuBot.Elements\JutsuBot.Elements.csproj", "{AE662B79-12EA-4B21-B8C7-A0F59E8632F1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{62BE6A4C-C21F-4B3F-8153-3450191F5CC0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{62BE6A4C-C21F-4B3F-8153-3450191F5CC0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{62BE6A4C-C21F-4B3F-8153-3450191F5CC0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AE662B79-12EA-4B21-B8C7-A0F59E8632F1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AE662B79-12EA-4B21-B8C7-A0F59E8632F1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AE662B79-12EA-4B21-B8C7-A0F59E8632F1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AE662B79-12EA-4B21-B8C7-A0F59E8632F1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

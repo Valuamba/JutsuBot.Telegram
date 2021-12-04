@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace TgBotFramework.UpdatePipeline
 {
-    public class UseWhenMiddleware<TContext> : ICallbackButtonHandler<TContext> where TContext : IUpdateContext
+    public class UseWhenMiddleware<TContext> : IUpdateHandler<TContext> where TContext : IUpdateContext
     {
         private readonly Predicate<TContext> _predicate;
 

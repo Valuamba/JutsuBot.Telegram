@@ -12,7 +12,7 @@ using TgBotFramework.WrapperExtensions;
 
 namespace CliverBot.Console.Handlers
 {
-    public class FirstNameStep : TgBotFramework.ICallbackButtonHandler<BotExampleContext>, IStep<BotExampleContext>
+    public class FirstNameStep : TgBotFramework.IUpdateHandler<BotExampleContext>, IStep<BotExampleContext>
     {
         public async Task HandleAsync(BotExampleContext context, UpdateDelegate<BotExampleContext> prev, UpdateDelegate<BotExampleContext> next, CancellationToken cancellationToken)
         {
@@ -37,7 +37,7 @@ namespace CliverBot.Console.Handlers
             }
         }
 
-        public async Task SendStepInformationAsync(BotExampleContext context, CancellationToken cancellationToken)
+        public async Task NotifyStep(BotExampleContext context, CancellationToken cancellationToken)
         {
             await context.Client.SendTextMessageAsync(context.Update.GetSenderId(), "Введите Имя:");
             context.UserState.CurrentState.Step++;

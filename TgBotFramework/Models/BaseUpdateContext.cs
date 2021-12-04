@@ -3,6 +3,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
+using Jutsu.Telegarm.Bot.Models;
 using Jutsu.Telegarm.Bot.Models.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,6 +23,7 @@ namespace TgBotFramework
         public BaseBot Bot { get; set; }
         public TelegramBotClient Client { get; set; }
         public IStageContext StageContext { get; set; }
+        public IClient CustomClient { get; set; }
 
         public async Task LeaveStage(string to, CancellationToken cancellationToken, int? step = null)
         {

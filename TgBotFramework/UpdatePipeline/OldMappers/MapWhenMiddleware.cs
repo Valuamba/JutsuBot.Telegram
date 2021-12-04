@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace TgBotFramework.UpdatePipeline.OldMappers
 {
-    public class MapWhenMiddleware<TContext> : ICallbackButtonHandler<TContext> where TContext : IUpdateContext
+    public class MapWhenMiddleware<TContext> : IUpdateHandler<TContext> where TContext : IUpdateContext
     {
         private readonly Predicate<TContext> _predicate;
 

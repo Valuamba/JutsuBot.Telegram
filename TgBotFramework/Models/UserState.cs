@@ -1,3 +1,5 @@
+using Jutsu.Telegarm.Bot.Models;
+
 namespace TgBotFramework
 {
     public class UserState : IUserState
@@ -29,6 +31,8 @@ namespace TgBotFramework
         public string CacheData { get; set; }
         public string Stage { get; set; }
         public long? Step { get; set; }
+        public StatePriority StatePriority { get; set; }
+
         public int? MessageId { get; set; }
     }
 }

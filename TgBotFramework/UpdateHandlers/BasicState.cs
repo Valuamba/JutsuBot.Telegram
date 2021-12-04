@@ -5,7 +5,7 @@ using TgBotFramework.Attributes;
 
 namespace TgBotFramework
 {
-    public abstract class BasicState<TContext> : ICallbackButtonHandler<TContext> where TContext : IUpdateContext 
+    public abstract class BasicState<TContext> : IUpdateHandler<TContext> where TContext : IUpdateContext 
     {
         public virtual async Task Enter(TContext state)
         {

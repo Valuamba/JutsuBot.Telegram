@@ -12,7 +12,7 @@ using TgBotFramework.WrapperExtensions;
 
 namespace Htlv.Parser.DataAccess.EF
 {
-    public class UserStateMapperMiddleware<TContext> : ICallbackButtonHandler<TContext> where TContext : IUpdateContext
+    public class UserStateMapperMiddleware<TContext> : IUpdateHandler<TContext> where TContext : IUpdateContext
     {
         private readonly BotDbContext _db;
         private readonly IOptions<BotSettings> _botOptions;

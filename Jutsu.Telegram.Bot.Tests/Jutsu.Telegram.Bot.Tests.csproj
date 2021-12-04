@@ -21,6 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\CliverBot.Console\CliverBot.Console.csproj" />
     <ProjectReference Include="..\TgBotFramework\Jutsu.Telegarm.Bot.csproj" />
   </ItemGroup>
 

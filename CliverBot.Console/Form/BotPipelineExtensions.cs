@@ -119,53 +119,43 @@ namespace CliverBot.Console
             };
         }
 
-        public static ILinkedStateMachine<TContext> AddForm<TContext>(this ILinkedStateMachine<TContext> pipeline, Action<IFormHandlerBuilder<TContext>> formBuilderConfigurator)
-            where TContext : IUpdateContext
-        {
-            FormHandlerBuilder<TContext> formHandler = new();
-            formBuilderConfigurator(formHandler);
+        //public static ILinkedStateMachine<TContext> AddForm<T, TContext>(this ILinkedStateMachine<TContext> pipeline, Action<IFormHandlerBuilder<TContext>> formBuilderConfigurator)
+        //    where TContext : IUpdateContext
+        //{
+        //    FormHandlerBuilder<TContext> formHandler = new();
+        //    formBuilderConfigurator(formHandler);
 
-            foreach (var form in formHandler.FormFields)
-            {
-                LinkedNode<TContext> newNode = new();
+        //    foreach (var form in formHandler.FormFields)
+        //    {
+        //        var formBuilder = new FormBuilder<T, TContext>(form, formHandler.Stage);
 
-                int notifyStep = form.Step;
-                int handlerStep = form.Step + 1;
+        //        pipeline.Step(
+        //            callbackButtonHandler: form.CallbackKeyboardHandler,
+        //            replyKeyboardButtonHandler: form.ReplyKeyboardHandler,
+        //            updateHandler: formBuilder.UpdateHandler,
+        //            stepHandler: formBuilder.StepDelegate,
+        //            extendedPrevDelegate: formHandler.ExtendedPrevDelegate,
+        //            extendedNextDelegate: formHandler.ExtendedNextDelegate,
+        //            executionSequence: formBuilder.ExecuteSequence);
+        //    }
 
-                IReplyMarkup replyMarkup = (IReplyMarkup) form.EntryReplyKeyboardMarkup ?? form.EntryInlineKeyboardMarkup;
+        //    var confirmationInfo = formHandler.ConfiramtionInfo;
+        //    var confirmAuthorizationDelegate = GetConfirmStepDelegate<TContext>(confirmationInfo.ConfirmationText, confirmationInfo.ResponsiblesToConfirmation);
 
-                var nodePredicate = NodePredicate<TContext>(notifyStep, handlerStep, formHandler.Stage);
-                var updateHandler = GetHandlerDelegate(form.HandledUpdateType, form.ValidationHandlers);
-                var stepHandler = GetNotifyMethod<TContext>(form.InformationText, replyMarkup);
-                var executionSequence = GetExecuteSequence(nodePredicate, notifyStep, handlerStep);
+        //    pipeline.Step(
+        //            callbackButtonHandler: null,
+        //            replyKeyboardButtonHandler: null,
+        //            updateHandler: null,
+        //            stepHandler: confirmAuthorizationDelegate,
+        //            executionSequence: (node) => async (context, cancellationToken) =>
+        //            {
+        //                if(context.UserState.CurrentState.Step == confirmationInfo.Step)
+        //                {
+        //                    await node.Step(context);
+        //                }
+        //            });
 
-                pipeline.Step(
-                    callbackButtonHandler: form.CallbackKeyboardHandler,
-                    replyKeyboardButtonHandler: form.ReplyKeyboardHandler,
-                    updateHandler: updateHandler,
-                    stepHandler: stepHandler,
-                    extendedPrevDelegate: formHandler.ExtendedPrevDelegate,
-                    extendedNextDelegate: formHandler.ExtendedNextDelegate,
-                    executionSequence: executionSequence);
-            }
-
-            var confirmationInfo = formHandler.ConfiramtionInfo;
-            var confirmAuthorizationDelegate = GetConfirmStepDelegate<TContext>(confirmationInfo.ConfirmationText, confirmationInfo.ResponsiblesToConfirmation);
-
-            pipeline.Step(
-                    callbackButtonHandler: null,
-                    replyKeyboardButtonHandler: null,
-                    updateHandler: null,
-                    stepHandler: confirmAuthorizationDelegate,
-                    executionSequence: (node) => async (context, cancellationToken) =>
-                    {
-                        if(context.UserState.CurrentState.Step == confirmationInfo.Step)
-                        {
-                            await node.Step(context);
-                        }
-                    });
-
-            return pipeline;
-        }
+        //    return pipeline;
+        //}
     }
 }

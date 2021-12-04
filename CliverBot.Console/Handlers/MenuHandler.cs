@@ -1,4 +1,5 @@
 ﻿using CliverBot.Console.Extensions;
+using Jutsu.Telegarm.Bot.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,13 +30,16 @@ namespace CliverBot.Console.Handlers
             return false;
         }
 
-        public async Task SendStepInformationAsync(BotExampleContext context, CancellationToken cancellationToken)
+        public async Task NotifyStep(BotExampleContext context, CancellationToken cancellationToken)
         {
-            await context.Client.SendTextMessageAsync(context.Update.GetSenderId(), "Вы прошли авторизацию успешно, наслаждайтесь главным меню!", 
+            var message = await context.Client.SendTextMessageAsync(context.Update.GetSenderId(), "Вы прошли авторизацию успешно, наслаждайтесь главным меню!", 
                 replyMarkup: (InlineKeyboardMarkup) new IEnumerable<InlineKeyboardButton>[]
                 {
                     new InlineKeyboardButton[] { new("Добавить партнера") {CallbackData = "addPartner"}}
                 });
+
+            context.UserState.CurrentState.MessageId = message.MessageId;
+            context.UserState.CurrentState.StatePriority = StatePriority.Minor;
             context.UserState.CurrentState.Step++;
         }
     }

@@ -9,78 +9,125 @@ using Telegram.Bot.Types.ReplyMarkups;
 using TgBotFramework;
 using TgBotFramework.UpdatePipeline;
 using Telegram.Bot.Types.Enums;
+using CliverBot.Console.Extensions;
+using TgBotFramework.WrapperExtensions;
+using CliverBot.Console.Form.v3.Elements;
+using Htlv.Parser.Pagination;
+using CliverBot.Console.DataAccess;
+using CliverBot.Console.Form.Elements;
+using CliverBot.Console.Form.Elements.Select;
+using CliverBot.Console.Elements.FormInput;
 
 namespace CliverBot.Console.Form.Authorization
 {
     public static class AuthFormPipeline
     {
-        public static void CreateAuthPipeline<TContext>(IFormHandlerBuilder<TContext> formHandler)
-            where TContext : IUpdateContext
+        private static SmartInputTextElement<AuthorizationModel, string, BotExampleContext> SecondNameTextInput = new()
         {
-            formHandler.Stage = "Authorization";
-            formHandler.FormFields = new List<FormStepInfo<TContext>>()
+            Step = 0,
+            PropertyName = nameof(AuthorizationModel.FirstName),
+            EntryReplyKeyboardMarkup = new ReplyKeyboardMarkup(new KeyboardButton("Отмена"))
             {
-                new FormStepInfo<TContext>()
-                {
-                    Step = 0,
-                    PropertyName = nameof(AuthorizationModel.Email),
-                    InformationText = "Write your email.",
-                    ValidationHandlers = new List<ValidationHandler<TContext>>()
-                    {
-                        new ValidationHandler<TContext>()
-                        {
-                            ErrorMessage = "Incorrect format.",
-                            UpdatePredicate = (context) => context.Update.Message?.Text.Contains("@") ?? false
-                        },
-                        new ValidationHandler<TContext>()
-                        {
-                            ErrorMessage = "Word is too long.",
-                            UpdatePredicate = (context) => context.Update.Message?.Text?.Length < 160
-                        },
-                    },
-                    ReplyKeyboardHandler = ReplyKeyboardHandler
-                },
-                new FormStepInfo<TContext>()
-                {
-                    Step = 2,
-                    PropertyName = nameof(AuthorizationModel.FirstName),
-                    InformationText = "Write your first name.",
-                    ValidationHandlers = new List<ValidationHandler<TContext>>()
-                    {
-                        //new ValidationHandler<TContext>()
-                        //{
-                        //    ErrorMessage = "Incorrect format.",
-                        //    UpdatePredicate = (context) => new Regex(@"^[А-Яа-я]+[\s][А-Яа-я]+\s[А-Яа-я]+$").IsMatch(context.Update.Message?.Text)
-                        //},
-                        new ValidationHandler<TContext>()
-                        {
-                            ErrorMessage = "Word is too long.",
-                            UpdatePredicate = (context) => context.Update.Message?.Text?.Length < 160
-                        },
-                    },
-                    ReplyKeyboardHandler = ReplyKeyboardHandler
-                },
-            };
+                ResizeKeyboard = true
+            },
 
-            //Условие, шаг может быть обработан только единожды.
-            formHandler.ConfiramtionInfo = new ConfirmStepInfo()
+            LocalizationProperty = new InputTextLocalizationSettings()
             {
-                ConfirmationText = "Waiting for confirmation.",
-                Step = 4,
-                ResponsiblesToConfirmation = new()
+                PlaceholderAlias = "✍️...",
+                AddPropertyCommandAlias = "Добавить имя",
+                ChangePropertyCommandAlias = "Изменить имя",
+                NameAlias = "Имя",
+                AddPropertyValueTextAlias = "Введите ваше Имя.",
+                ChangePropertyTextAlias = "Измените ваше Имя"
+            },
+
+            ReplyUpdateDelegate = async (prev, next, context, cancellationToken) =>
+            {
+                if (On.Message(context))
                 {
-                    new ResponsibleConfirmation()
+                    if (context.Update.Message.Text == "Отмена")
                     {
-                        Message = "Confirm authorization data.",
-                        Role = Role.Admin,
-                        InlineKeyboardMarkup = new InlineKeyboardMarkup(new List<InlineKeyboardButton>()
-                        {
-                            new InlineKeyboardButton("Confirm") { CallbackData = "395040322"},
-                            new InlineKeyboardButton("Cancel") { CallbackData = "395040322"},
-                        })
+                        await context.LeaveStage("menu", cancellationToken);
+                        return true;
                     }
                 }
-            };
+
+                return false;
+            }
+        };
+
+        private static InputTextElement<AuthorizationModel, string, BotExampleContext> FirstNameTextInput = new()
+        {
+            Step = 0,
+            NotifyMessage = "Write your first name",
+            PropertyName = nameof(AuthorizationModel.FirstName),
+            EntryReplyKeyboardMarkup = new ReplyKeyboardMarkup(new KeyboardButton("Отмена"))
+            {
+                ResizeKeyboard = true
+            },
+            ReplyUpdateDelegate = async (prev, next, context, cancellationToken) =>
+            {
+                if (On.Message(context))
+                {
+                    if (context.Update.Message.Text == "Отмена")
+                    {
+                        await context.LeaveStage("menu", cancellationToken);
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+        };
+
+        private static SelectMultipleElements<AuthorizationModel, InterestType, BotExampleContext> SelectIntersetsStep = new()
+        {
+            Step = 2,
+            ItemsSupplier = (context) => Enum.GetValues<InterestType>().AsQueryable(),
+            Pagination = new NextPrevPagination()
+            {
+                MaxElementsCount = 8,
+            },
+
+            PropertyName = nameof(AuthorizationModel.Interests),
+            CallbackConvereter = (context) => Enum.Parse<InterestType>(context.Update.TrimCallbackCommand($"interest/")),
+
+            CallbackDataTemplate = (context, interest) => 
+            {
+                //if()
+                return $"check_interest/{interest}";
+            },
+            SelectedInlineButtonTextTemplate = (interest) => interest.ToString() + "✅",
+            InlineButtonTextTemplate = (interest) => interest.ToString(),
+            NotifyMessage = "Choose your interests!",
+        };
+
+        public static ILinkedStateMachine<BotExampleContext> CreateAuthPipeline(this ILinkedStateMachine<BotExampleContext> pipe)
+        {
+            pipe.Step(FirstNameTextInput, executionSequence: FirstNameTextInput.GetExecuteSequence);
+            pipe.Step(SelectIntersetsStep, executionSequence: SelectIntersetsStep.GetExecuteSequence);
+
+            return pipe;
+
+            //Условие, шаг может быть обработан только единожды.
+            //formHandler.ConfiramtionInfo = new ConfirmStepInfo()
+            //{
+            //    ConfirmationText = "Waiting for confirmation.",
+            //    Step = 4,
+            //    ResponsiblesToConfirmation = new()
+            //    {
+            //        new ResponsibleConfirmation()
+            //        {
+            //            Message = "Confirm authorization data.",
+            //            Role = Role.Admin,
+            //            InlineKeyboardMarkup = new InlineKeyboardMarkup(new List<InlineKeyboardButton>()
+            //            {
+            //                new InlineKeyboardButton("Confirm") { CallbackData = "395040322"},
+            //                new InlineKeyboardButton("Cancel") { CallbackData = "395040322"},
+            //            })
+            //        }
+            //    }
+            //};
         }
 
         public static async Task<bool> ReplyKeyboardHandler<TContext>(UpdateDelegate<TContext> prev, UpdateDelegate<TContext> next, TContext context, CancellationToken cancellationToken)
@@ -96,6 +143,5 @@ namespace CliverBot.Console.Form.Authorization
             }
             return false;
         }
-
     }
 }

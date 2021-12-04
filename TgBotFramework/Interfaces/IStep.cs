@@ -9,7 +9,7 @@ namespace TgBotFramework.Interfaces
 {
     public interface IStep<TContext> where TContext : IUpdateContext
     {
-        Task SendStepInformationAsync(TContext context, CancellationToken cancellationToken);
+        Task NotifyStep(TContext context, CancellationToken cancellationToken);
     }
 
 }

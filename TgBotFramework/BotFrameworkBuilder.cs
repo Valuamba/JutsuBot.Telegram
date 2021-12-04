@@ -50,7 +50,7 @@ namespace TgBotFramework
             return this;
         }
 
-        public IBotFrameworkBuilder<TContext> UseMiddleware<TMiddleware>() where TMiddleware : ICallbackButtonHandler<TContext>
+        public IBotFrameworkBuilder<TContext> UseMiddleware<TMiddleware>() where TMiddleware : IUpdateHandler<TContext>
         {
             UpdatePipelineSettings.Middlewares.Add(typeof(TMiddleware));
 
@@ -89,7 +89,7 @@ namespace TgBotFramework
             var types = assembly.GetTypes().Where(x => 
                     x.GetCustomAttribute<CommandAttribute>()!=null && 
                     x.BaseType == typeof(CommandBase<TContext>) && 
-                    x.GetInterfaces().Any(y => y.IsGenericType && y.GetGenericTypeDefinition() == typeof(ICallbackButtonHandler<>)
+                    x.GetInterfaces().Any(y => y.IsGenericType && y.GetGenericTypeDefinition() == typeof(IUpdateHandler<>)
                     ))
                 .ToList();
 

@@ -10,11 +10,11 @@ namespace CliverBot.Console.Extensions
     public static class CallbackCommandExtensions
     {
         public static bool IsCallbackCommand(this Update update, string command) =>
-            update.CallbackQuery.Data.Contains(
+            update.CallbackQuery?.Data?.Contains(
                 command,
-                StringComparison.Ordinal);
+                StringComparison.Ordinal) ?? false;
 
         public static string TrimCallbackCommand(this Update update, string pattern) =>
-            update.CallbackQuery.Data.Replace(pattern, string.Empty);
+            update.CallbackQuery?.Data?.Replace(pattern, string.Empty);
     }
 }

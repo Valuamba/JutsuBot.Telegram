@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -73,23 +74,40 @@ namespace TgBotFramework.UpdatePipeline
                 (node) =>
                     async (context, cancellationToken) =>
                     {
+                        //var logger = context.Services.GetRequiredService<ILogger>();
+
                         if (context.UserState?.CurrentState.Step == 0)
                         {
                             if (node.Step != null)
                             {
                                 await node.Step(context);
                             }
+                            //else
+                            //{
+                            //    logger.LogWarning($"There is no step for stage: {context.UserState?.CurrentState?.Stage}" +
+                            //        $"and step: {context.UserState?.CurrentState?.Step}");
+                            //}
                         }
                         else
                         {
-                            if ((node.CallbackButtonHandler == null         || !await node.CallbackButtonHandler(context))
+                            if ((node.CallbackButtonHandler == null || !await node.CallbackButtonHandler(context))
                                 && (node.ReplyKeyboardButtonHandler == null || !await node.ReplyKeyboardButtonHandler(context)))
                             {
                                 if (node.Handler != null)
                                 {
                                     await node.Handler(context);
                                 }
+                                //else
+                                //{
+                                //    logger.LogWarning($"There is no handler for stage: {context.UserState?.CurrentState?.Stage}" +
+                                //        $"and step: {context.UserState?.CurrentState?.Step}");
+                                //}
                             }
+                            //else
+                            //{
+                            //    logger.LogWarning($"There is no step for stage: {context.UserState?.CurrentState?.Stage}" +
+                            //        $"and step: {context.UserState?.CurrentState?.Step}");
+                            //}
                         }
                     };
 
@@ -117,10 +135,10 @@ namespace TgBotFramework.UpdatePipeline
             if (handler is IStep<TContext> step)
             {
                 node.Step = (context, cancellationToken) =>
-                    step.SendStepInformationAsync(context, cancellationToken);
+                    step.NotifyStep(context, cancellationToken);
             }
 
-            if (handler is ICallbackButtonHandler<TContext> updateHandler)
+            if (handler is IUpdateHandler<TContext> updateHandler)
             {
                 node.Handler = (context, cancellationToken) =>
                     updateHandler.HandleAsync(context, prevDelegate, nextDelegate, cancellationToken);
@@ -160,17 +178,17 @@ namespace TgBotFramework.UpdatePipeline
                 node.Step = (context, cancellationToken) =>
                 {
                     if (context.Services.GetService(typeof(THandler)) is IStep<TContext> step)
-                        return step.SendStepInformationAsync(context, cancellationToken);
+                        return step.NotifyStep(context, cancellationToken);
                     else
                         throw new PipelineException($"Unable to resolve handler of type {typeof(THandler).FullName}");
                 };
             }
 
-            if (handlerInterfaces.Any(i => i == typeof(ICallbackButtonHandler<TContext>)))
+            if (handlerInterfaces.Any(i => i == typeof(IUpdateHandler<TContext>)))
             {
                 node.Handler = (context, cancellationToken) =>
                 {
-                    if (context.Services.GetService(typeof(THandler)) is ICallbackButtonHandler<TContext> updateHandler)
+                    if (context.Services.GetService(typeof(THandler)) is IUpdateHandler<TContext> updateHandler)
                         return updateHandler.HandleAsync(context, prevDelegate, nextDelegate, cancellationToken);
                     else
                         throw new PipelineException($"Unable to resolve handler of type {typeof(THandler).FullName}");
@@ -239,7 +257,7 @@ namespace TgBotFramework.UpdatePipeline
                Func<LinkedNode<TContext>, UpdateDelegate<TContext>> extendedNextDelegate = null,
                Func<LinkedNode<TContext>, UpdateDelegate<TContext>> executionSequence = null)
         {
-            ServiceCollection.TryAddScoped(typeof(THandler));
+            //ServiceCollection.TryAddScoped(typeof(THandler));
             LinkedNode<TContext> newNode = new();
 
             UpdateDelegate<TContext> prevDelegate = extendedPrevDelegate != null

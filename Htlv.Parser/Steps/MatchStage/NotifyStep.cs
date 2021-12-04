@@ -45,7 +45,7 @@ namespace Htlv.Parser.Steps.MatchStage
         //}
 
         //Запомнить и передать в Назад
-        public async Task SendStepInformationAsync(BotExampleContext context, CancellationToken cancellationToken)
+        public async Task NotifyStep(BotExampleContext context, CancellationToken cancellationToken)
         {
             if (context.Update.IsCallbackCommand("notify/matchId/"))
             {
