@@ -30,10 +30,10 @@ namespace CliverBot.Console.Form.Authorization
         {
             await next(context, cancellationToken);
             //context.UserState.CurrentState.Stage.GetParameter("fornId")
-            int formId = context.UserState;
+            int formId = 11;// context.UserState.CurrentState.Step;
             var formModel = _formRepository.GetFormById(formId);
 
-            context.Client.EditMessageTextAsync(context.Update.GetSenderId(), formModel.FormInformationMessage.MessageId, );
+            //context.Client.EditMessageTextAsync(context.Update.GetSenderId(), formModel.FormInformationMessage.MessageId, );
 
             _messageRepository.DeleteMessages(context.Update.GetSenderId(), MessageType.BeDeleted);
         }
