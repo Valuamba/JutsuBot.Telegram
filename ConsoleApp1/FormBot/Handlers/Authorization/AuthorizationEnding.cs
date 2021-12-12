@@ -1,6 +1,7 @@
 ﻿using ConsoleApp1;
 using ConsoleApp1.FormBot.Extensions;
 using ConsoleApp1.FormBot.Models;
+using JutsuForms.Server.TgBotFramework.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,14 +16,15 @@ namespace JutsuForms.Server.FormBot.Handlers
     {
         public async Task HandleAsync(BotExampleContext context, UpdateDelegate<BotExampleContext> prev, UpdateDelegate<BotExampleContext> next, CancellationToken cancellationToken)
         {
-            if (true)
+            var result = context.UserState.CurrentState.Stage.GetParameter<bool>("result");
+            if (result)
             {
                 var authorizationModel = context.UserState.CurrentState.CacheData.Deserialize<AuthorizationModels>();
 
                 context.UserState.FullName = authorizationModel.Name;
                 context.UserState.Age = authorizationModel.Age;
 
-                await context.BotClient.SendMessage(context.Update.GetSenderId(), "Authorization was successful.");
+                await context.BotClient.SendTextMessageAsync(context.Update.GetSenderId(), "Authorization was successful.");
 
                 await context.LeaveStage("menu", cancellationToken);
             }

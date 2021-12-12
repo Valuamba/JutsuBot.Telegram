@@ -1,4 +1,5 @@
 ﻿using ConsoleApp1.TgBotFramework.UpdatePipeline;
+using JutsuForms.Server.TgBotFramework.Helpers;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
@@ -47,9 +48,9 @@ namespace TgBotFramework.UpdatePipeline
             branch(stageBranch);
 
             LinkedNode<TContext> newNode = new();
-
+            
             newNode.Data = (context, cancellationToken) =>
-                context.UserState.CurrentState.Stage == stage
+                context.UserState.CurrentState.Stage.IsStage(stage)
                 ? stageBranch.Head.Data(context, cancellationToken)
                 : newNode.Next.Data(context, cancellationToken);
            

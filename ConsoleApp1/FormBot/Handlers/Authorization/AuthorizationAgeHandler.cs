@@ -28,14 +28,14 @@ namespace ConsoleApp1.FormBot.Handlers
                 }
                 else
                 {
-                    await context.BotClient.SendMessage(context.Update.GetSenderId(), "You should write number.");
+                    await context.BotClient.SendTextMessageAsync(context.Update.GetSenderId(), "You should write number.");
                 }
             }
         }
 
         public async Task NotifyStep(BotExampleContext context, CancellationToken cancellationToken)
         {
-            await context.BotClient.SendMessage(context.Update.GetSenderId(), "Write your age.");
+            await context.BotClient.SendTextMessageAsync(context.Update.GetSenderId(), "Write your age.");
             context.UserState.CurrentState.Step++;
         }
     }

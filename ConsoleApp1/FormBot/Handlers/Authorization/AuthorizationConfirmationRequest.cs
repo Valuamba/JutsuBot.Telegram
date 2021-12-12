@@ -27,7 +27,7 @@ namespace ConsoleApp1.FormBot.Handlers
 
         public async Task HandleAsync(BotExampleContext context, UpdateDelegate<BotExampleContext> prev, UpdateDelegate<BotExampleContext> next, CancellationToken cancellationToken)
         {
-            await context.BotClient.SendMessage(context.Update.GetSenderId(), "Wait for acceptance.");
+            await context.BotClient.SendTextMessageAsync(context.Update.GetSenderId(), "Wait for acceptance.");
         }
 
         public async Task NotifyStep(BotExampleContext context, CancellationToken cancellationToken)
@@ -35,9 +35,7 @@ namespace ConsoleApp1.FormBot.Handlers
             var admins = _context.Users.Include(u => u.CurrentState).Where(u => u.Role == Role.Admin).ToList();
 
             if(admins.Count == 0)
-            {
                 throw new AuthorizationBotException("There is no users that can handle authorization confimation request.");
-            }
 
             foreach (var admin in admins)
             {
@@ -48,10 +46,10 @@ namespace ConsoleApp1.FormBot.Handlers
                     StatePriority = Jutsu.Telegarm.Bot.Models.StatePriority.Medium,
                     UserId = admin.Id
                 };
-                await context.BotClient.SendMessage(admin.Id, "User wants to sign in.\r\nPleace confirm:\r\n1 — Accept\r\n2 — Desline");
+                await context.BotClient.SendTextMessageAsync(admin.Id, "User wants to sign in.\r\nPleace confirm:\r\n1 — Accept\r\n2 — Desline");
             }
 
-            await context.BotClient.SendMessage(context.Update.GetSenderId(), "Pleace, waiting for confirmation.");
+            await context.BotClient.SendTextMessageAsync(context.Update.GetSenderId(), "Pleace, waiting for confirmation.");
             context.UserState.CurrentState.Step++;
         }
     }

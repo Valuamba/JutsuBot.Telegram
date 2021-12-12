@@ -33,8 +33,8 @@ namespace ConsoleApp1.FormBot.Handlers.Menu
 
         public async Task NotifyStep(BotExampleContext context, CancellationToken cancellationToken)
         {
-            await context.BotClient.SendMessage(context.Update.GetSenderId(), "You are in main menu.");
-            await context.BotClient.SendMessage(context.Update.GetSenderId(), "1 - Authorization.");
+            await context.BotClient.SendTextMessageAsync(context.Update.GetSenderId(), "You are in main menu.");
+            await context.BotClient.SendTextMessageAsync(context.Update.GetSenderId(), "1 - Authorization.");
 
             //Console.WriteLine("You are in main menu.");
             //Console.WriteLine("1 - Authorization");

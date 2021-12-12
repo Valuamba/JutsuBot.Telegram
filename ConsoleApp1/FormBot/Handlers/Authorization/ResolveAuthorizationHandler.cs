@@ -23,15 +23,24 @@ namespace JutsuForms.Server.FormBot.Handlers
         {
             if (int.TryParse(context.Update.Message.Text, out int value))
             {
+                //Нужно получать ID из колбэка
+                var user = _context.Users.Include(u => u.CurrentState).Single(u => u.Id == 1111);
+
                 switch (value)
                 {
                     case 1:
-                        var user = _context.Users.Include(u => u.CurrentState).Single(u => u.Id == 1111);
                         user.CurrentState.Step++;
-                        await _context.SaveChangesAsync();
-                        await context.SendUpdate(user.Id, cancellationToken);
+                        user.CurrentState.Stage = $"authorization?result={true}";
+                        break;
+
+                    case 2:
+                        user.CurrentState.Step++;
+                        user.CurrentState.Stage = $"authorization?result={false}";
                         break;
                 }
+
+                await _context.SaveChangesAsync();
+                await context.SendUpdate(user.Id, cancellationToken);
             }
         }
     }

@@ -25,6 +25,8 @@ using ConsoleApp1.FormBot;
 using JutsuForms.Server.TgBotFramework;
 using JutsuForms.Server.FormBot.Predicates;
 using JutsuForms.Server.FormBot.Handlers;
+using Telegram.Bot;
+using Microsoft.Extensions.Options;
 
 namespace JutsuForms.Server
 {
@@ -39,9 +41,16 @@ namespace JutsuForms.Server
 
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddSingleton(sp =>
+            {
+                var options = sp.GetRequiredService<IOptions<BotSettings>>();
+                return new TelegramBotClient(options.Value.ApiToken, baseUrl: options.Value.BaseUrl);
+            });
+
             services.AddSignalR();
             services.AddLogging();
-            services.AddScoped<IUpdateService, UpdateService>();
+            services.AddScoped<IUpdateService, TelegramUpdateService>();
+            services.Configure<BotSettings>(Configuration.GetSection(nameof(BaseBot)));
 
             services.AddScoped<MenuStep>();
             services.AddScoped<AuthorizationNameHandler>();
@@ -60,9 +69,10 @@ namespace JutsuForms.Server
             services.AddScoped<TrackedMessageRepository>();
 
             services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlServer("Data Source=.\\SqlExpress;Initial Catalog=TestStudyDb;Integrated Security=True"));
+                options.UseSqlServer("Data Source=DESKTOP-QEJJ1L4;Initial Catalog=JutsuForm;Integrated Security=True"));
 
             services.AddBotService<BaseBot, BotExampleContext>(x => x
+                .UseLongPolling<PollingManager<BotExampleContext>>(new LongPollingOptions())
 
                 .SetPipeline(pipelineBuilder => pipelineBuilder
 
@@ -72,7 +82,6 @@ namespace JutsuForms.Server
                     .Stage("menu", branch => branch
                         .Step<MenuStep>()
                     )
-
                     .Stage("authorization", branch => branch
                         .When(IsRole.Visitor, branch => branch
                             .Step<AuthorizationNameHandler>(0)

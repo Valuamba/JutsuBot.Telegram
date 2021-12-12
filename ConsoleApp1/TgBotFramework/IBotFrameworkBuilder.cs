@@ -13,8 +13,9 @@ namespace TgBotFramework
         IServiceCollection Services { get; }
         IUpdateContext Context { get; set; }
         UpdatePipelineSettings<TContext> UpdatePipelineSettings { get; set; }
-        
-        IBotFrameworkBuilder<TContext> UseLongPolling<T>()
+
+        IBotFrameworkBuilder<TContext> UseLongPolling<T>(
+            LongPollingOptions longPollingOptions)
             where T : BackgroundService, IPollingManager<TContext>;
 
         IBotFrameworkBuilder<TContext> UseMiddleware<TMiddleware>() where TMiddleware : IUpdateHandler<TContext>;

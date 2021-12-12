@@ -16,7 +16,7 @@ namespace ConsoleApp1
         {
             var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
 
-            optionsBuilder.UseSqlServer("Data Source=.\\SqlExpress;Initial Catalog=TestStudyDb;Integrated Security=True",
+            optionsBuilder.UseSqlServer("Data Source=DESKTOP-QEJJ1L4;Initial Catalog=JutsuForm;Integrated Security=True",
                 x => x.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName));
 
             return new ApplicationDbContext(optionsBuilder.Options);

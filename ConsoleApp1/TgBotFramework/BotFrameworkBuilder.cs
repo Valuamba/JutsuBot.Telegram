@@ -41,9 +41,10 @@ namespace ConsoleApp1.TgBotFramework
             //services.AddSingleton<BaseBot>(provider => provider.GetService<TBot>());
         }
 
-        public IBotFrameworkBuilder<TContext> UseLongPolling<T>() where T : BackgroundService, IPollingManager<TContext>
+        public IBotFrameworkBuilder<TContext> UseLongPolling<T>(LongPollingOptions longPollingOptions) where T : BackgroundService, IPollingManager<TContext>
         {
             Services.AddHostedService<T>();
+            Services.AddSingleton(longPollingOptions);
             Services.AddSingleton<IPollingManager<TContext>>(x => x.GetService<T>());
             return this;
         }

@@ -7,39 +7,36 @@ using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using Telegram.Bot.Types.Enums;
+using Telegram.Bot.Types.ReplyMarkups;
 
 namespace JutsuForms.Server.TgBotFramework
 {
     public class UpdateService : IUpdateService
     {
-        private readonly IHubCallerClients _clients;
-        private readonly IServiceProvider _serviceProvider;
         private readonly ApplicationDbContext _dbContext;
         private readonly IHubContext<UpdateHub> _hubContext;
 
         public UpdateService(IHubContext<UpdateHub> hubContext, ApplicationDbContext dbContext)
         {
-            //_clients = clients;
-            //_serviceProvider = serviceProvider;
             _dbContext = dbContext;
             _hubContext = hubContext;
         }
 
         private async Task<User> GetUserWithConnectionsAsync(long userId)
         {
-            //var _dbContext = _serviceProvider.GetRequiredService<ApplicationDbContext>();
-
             return await _dbContext.Users.Include(u => u.Connections).SingleAsync(u => u.Id == userId);
         }
 
-        public async Task SendMessage(long userId, string message)
+        public async Task SendTextMessageAsync(Telegram.Bot.Types.ChatId chatId, string text, ParseMode? parseMode = null, IEnumerable<Telegram.Bot.Types.MessageEntity> entities = null, bool? disableWebPagePreview = null, bool? disableNotification = null, int? replyToMessageId = null, bool? allowSendingWithoutReply = null, IReplyMarkup replyMarkup = null, CancellationToken cancellationToken = default)
         {
-            var user = await GetUserWithConnectionsAsync(userId);
+            var user = await GetUserWithConnectionsAsync((long)chatId.Identifier);
 
-            foreach(var connection in user.Connections)
+            foreach (var connection in user.Connections)
             {
-                await _hubContext.Clients.Client(connection.ConnectionId).SendAsync("Send", message);
+                await _hubContext.Clients.Client(connection.ConnectionId).SendAsync("Send", text);
             }
         }
     }
