@@ -17,6 +17,23 @@ namespace ConsoleApp1.FormBot
             return pipe;
         }
 
+        public static ILinkedStateMachine<BotExampleContext> When(this ILinkedStateMachine<BotExampleContext> pipe, Predicate<BotExampleContext> predicate, Action<ILinkedStateMachine<BotExampleContext>> branch)
+        {
+            var whenBranch = new LinkedStateMachine<BotExampleContext>(pipe.ServiceCollection);
+            branch(whenBranch);
+
+            LinkedNode<BotExampleContext> newNode = new();
+
+            newNode.Data = (context, cancellationToken) =>
+                predicate(context)
+                ? whenBranch.Head.Data(context, cancellationToken)
+                : newNode.Next.Data(context, cancellationToken);
+
+            pipe.AppendNode(newNode);
+
+            return pipe;
+        }
+
         public static ILinkedStateMachine<BotExampleContext> Handler<THandler>(this ILinkedStateMachine<BotExampleContext> pipe, int handlerStepNumber)
             where THandler : IUpdateHandler<BotExampleContext>
         {

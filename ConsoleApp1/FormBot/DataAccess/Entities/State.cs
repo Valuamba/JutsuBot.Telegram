@@ -30,5 +30,6 @@ namespace CliverBot.Console.DataAccess
 
         public long? MessageStateUserId { get; set; }
         public User MessageStateUser { get; set; }
+
     }
 }

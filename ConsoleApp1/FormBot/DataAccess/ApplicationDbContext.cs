@@ -1,5 +1,6 @@
 ﻿using CliverBot.Console.DataAccess;
 using CliverBot.Console.DataAccess.Entities;
+using JutsuForms.Server.FormBot.DataAccess.Entities;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -19,6 +20,7 @@ namespace JutsuBot.Elements.DataAccess
         public DbSet<State> States { get; set; }
         public DbSet<TrackedMessage> TrackedMessages { get; set; }
         public DbSet<User> Users { get; set; }
+        public DbSet<Connection> Connections { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -38,6 +40,9 @@ namespace JutsuBot.Elements.DataAccess
                 .WithOne(u => u.MessageStateUser)
                 .HasForeignKey(s => s.MessageStateUserId)
                 .OnDelete(DeleteBehavior.NoAction);
+
+            user.HasMany(u => u.Connections)
+                .WithOne(c => c.User);
 
             //State
             var state = modelBuilder.Entity<State>();
@@ -79,6 +84,11 @@ namespace JutsuBot.Elements.DataAccess
             var trackedMessage = modelBuilder.Entity<TrackedMessage>();
             trackedMessage.HasKey(t => t.MessageId);
             trackedMessage.Property(t => t.MessageId).ValueGeneratedNever();
+
+            modelBuilder.Entity<Connection>(build =>
+            {
+                build.HasKey(c => c.ConnectionId);
+            });
         }
     }
 }

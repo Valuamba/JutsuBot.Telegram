@@ -4,7 +4,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Jutsu.Telegarm.Bot.Models;
 using Jutsu.Telegarm.Bot.Models.Interfaces;
+using JutsuForms.Server.TgBotFramework;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.SignalR;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 
@@ -19,7 +21,8 @@ namespace TgBotFramework
         public TaskCompletionSource Result { get; set; }
         public IUserState UserState { get; set; }
         public BaseBot Bot { get; set; }
-        public IClient CustomClient { get; set; }
+        public IUpdateService BotClient { get; set; }
+
         Task LeaveStage(string to, CancellationToken cancellationToken, int? step = null);
     }
 }

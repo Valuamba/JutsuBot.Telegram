@@ -19,6 +19,5 @@ namespace ConsoleApp1.FormBot.Models
         Dota2,
         LoL,
         WoW,
-
     }
 }

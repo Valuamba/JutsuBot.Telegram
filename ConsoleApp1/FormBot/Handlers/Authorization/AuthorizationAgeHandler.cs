@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using TgBotFramework;
 using TgBotFramework.Interfaces;
+using TgBotFramework.WrapperExtensions;
 
 namespace ConsoleApp1.FormBot.Handlers
 {
@@ -27,14 +28,14 @@ namespace ConsoleApp1.FormBot.Handlers
                 }
                 else
                 {
-                    Console.WriteLine("You should write number.");
+                    await context.BotClient.SendMessage(context.Update.GetSenderId(), "You should write number.");
                 }
             }
         }
 
         public async Task NotifyStep(BotExampleContext context, CancellationToken cancellationToken)
         {
-            Console.WriteLine("Write your age.");
+            await context.BotClient.SendMessage(context.Update.GetSenderId(), "Write your age.");
             context.UserState.CurrentState.Step++;
         }
     }

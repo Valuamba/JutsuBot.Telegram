@@ -45,7 +45,7 @@ namespace CliverBot.Console.DataAccess
                         state.Step = 0;
                         state.StatePriority = StatePriority.Medium;
                         state.UserId = context.Update.GetSenderId();
-
+                        state.CurrentStateUserId = context.Update.GetSenderId();
                         state = _stateRepository.AddState(state);
                     }
                     else
@@ -58,6 +58,7 @@ namespace CliverBot.Console.DataAccess
             {
                 state = mainState;
             }
+
 
             context.UserState.CurrentState ??= new();
             StateMapper.MapModelToState(context.UserState.CurrentState, state);

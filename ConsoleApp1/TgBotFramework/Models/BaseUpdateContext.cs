@@ -5,7 +5,9 @@ using System.Threading.Channels;
 using System.Threading.Tasks;
 using Jutsu.Telegarm.Bot.Models;
 using Jutsu.Telegarm.Bot.Models.Interfaces;
+using JutsuForms.Server.TgBotFramework;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.DependencyInjection;
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -22,7 +24,7 @@ namespace TgBotFramework
         public IUserState UserState { get; set; } 
         public BaseBot Bot { get; set; }
         public IStageContext StageContext { get; set; }
-        public IClient CustomClient { get; set; }
+        public IUpdateService BotClient { get; set; }
 
         public async Task LeaveStage(string to, CancellationToken cancellationToken, int? step = null)
         {
@@ -33,6 +35,14 @@ namespace TgBotFramework
 
             var channel = (Channel<IUpdateContext>) Services.GetService(typeof(Channel<IUpdateContext>));
             Update.ClearUpdate();
+
+            await channel.Writer.WriteAsync(this, cancellationToken);
+        }
+
+        public async Task SendUpdate(long chatId, CancellationToken cancellationToken)
+        {
+            var channel = (Channel<IUpdateContext>)Services.GetService(typeof(Channel<IUpdateContext>));
+            Update.ClearUpdate(chatId);
 
             await channel.Writer.WriteAsync(this, cancellationToken);
         }

@@ -7,17 +7,17 @@ namespace TgBotFramework.WrapperExtensions
 {
     public static class UpdateExtensions
     {
-        public static void ClearUpdate(this Update update, UpdateType updateType = UpdateType.Message)
+        public static void ClearUpdate(this Update update, long? chatId = null, UpdateType updateType = UpdateType.Message)
         {
             update.Message = updateType == UpdateType.Message ? new()
             {
                 Chat = new()
                 {
-                    Id = update.GetSenderId()
+                    Id = chatId ?? update.GetSenderId()
                 },
                 From = new()
                 {
-                    Id = update.GetSenderId()
+                    Id = chatId ?? update.GetSenderId()
                 },
             } : null;
             update.CallbackQuery = null;

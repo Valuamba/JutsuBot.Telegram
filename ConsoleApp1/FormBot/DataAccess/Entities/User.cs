@@ -1,4 +1,5 @@
-﻿using System;
+﻿using JutsuForms.Server.FormBot.DataAccess.Entities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -20,5 +21,6 @@ namespace CliverBot.Console.DataAccess
         public State CurrentState { get; set; }
         public State PrevState { get; set; }
         public List<State> MessageState { get; set; }
+        public ICollection<Connection> Connections { get; set; }
     }
 }

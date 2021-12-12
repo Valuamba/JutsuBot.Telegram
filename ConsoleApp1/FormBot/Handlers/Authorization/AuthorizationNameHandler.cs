@@ -1,5 +1,6 @@
 ﻿using ConsoleApp1.FormBot.Extensions;
 using ConsoleApp1.FormBot.Models;
+using Microsoft.AspNetCore.SignalR;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using TgBotFramework;
 using TgBotFramework.Interfaces;
+using TgBotFramework.WrapperExtensions;
 
 namespace ConsoleApp1.FormBot.Handlers
 {
@@ -26,14 +28,14 @@ namespace ConsoleApp1.FormBot.Handlers
                 }
                 else
                 {
-                    Console.WriteLine("The word is too long! Pleace, repeat.");
+                    await context.BotClient.SendMessage(context.Update.GetSenderId(), "The word is too long! Pleace, repeat.");
                 }
             }
         }
 
         public async Task NotifyStep(BotExampleContext context, CancellationToken cancellationToken)
         {
-            Console.WriteLine("Write your name.");
+            await context.BotClient.SendMessage(context.Update.GetSenderId(), "Write your name.");
             context.UserState.CurrentState.Step++;
         }
     }

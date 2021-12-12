@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.DependencyInjection;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,7 +11,7 @@ namespace TgBotFramework.UpdatePipeline
     public interface ILinkedStateMachine<TContext> where TContext : IUpdateContext
     {
         LinkedNode<TContext> Head { get; }
-
+        ServiceCollection ServiceCollection { get; }
         ILinkedStateMachine<TContext> Stage(string stage, Action<ILinkedStateMachine<TContext>> branch);
 
         Func<LinkedNode<TContext>, UpdateDelegate<TContext>> GetExecutionSequence(Func<LinkedNode<TContext>, UpdateDelegate<TContext>> executionSequence = null);

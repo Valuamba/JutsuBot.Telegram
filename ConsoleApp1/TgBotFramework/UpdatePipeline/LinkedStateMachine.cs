@@ -48,21 +48,11 @@ namespace TgBotFramework.UpdatePipeline
 
             LinkedNode<TContext> newNode = new();
 
-            newNode.Data = async (context, cancellationToken) =>
-            {
-                if (context.UserState.CurrentState.Stage == stage)
-                {
-                    await stageBranch.Head.Data(context, cancellationToken);
-                }
-                else
-                {
-                    if (newNode.Next is not null)
-                    {
-                        await newNode.Next.Data(context, cancellationToken);
-                    }
-                }
-            };
-
+            newNode.Data = (context, cancellationToken) =>
+                context.UserState.CurrentState.Stage == stage
+                ? stageBranch.Head.Data(context, cancellationToken)
+                : newNode.Next.Data(context, cancellationToken);
+           
             AppendNode(newNode);
 
             return this;
@@ -156,8 +146,12 @@ namespace TgBotFramework.UpdatePipeline
             {
                 node.CallbackButtonHandler = (context, cancellationToken) =>
                 {
-                    if (context.Services.GetService(typeof(THandler)) is Interfaces.ICallbackButtonHandler<TContext> callbackButtonHandler)
+                    if (context.Services.GetService(typeof(THandler)) is ICallbackButtonHandler<TContext> callbackButtonHandler)
+                    {
+                        var logger = context.Services.GetRequiredService<ILogger<THandler>>();
+                        logger.LogInformation($"Handling of callback button with [{typeof(THandler).Name}].");
                         return callbackButtonHandler.HandleCallbackButton(context, prevDelegate, nextDelegate, cancellationToken);
+                    }
                     else
                         throw new PipelineException($"Unable to resolve handler of type {typeof(THandler).FullName}");
                 };  
@@ -168,7 +162,11 @@ namespace TgBotFramework.UpdatePipeline
                 node.ReplyKeyboardButtonHandler = (context, cancellationToken) =>
                 {
                     if (context.Services.GetService(typeof(THandler)) is IReplyKeyboardButtonHandler<TContext> replyKeyboardButtonHandler)
+                    {
+                        var logger = context.Services.GetRequiredService<ILogger<THandler>>();
+                        logger.LogInformation($"Handling of reply keyboard with [{typeof(THandler).Name}].");
                         return replyKeyboardButtonHandler.HandleReplyKeyboardButton(context, prevDelegate, nextDelegate, cancellationToken);
+                    }
                     else
                         throw new PipelineException($"Unable to resolve handler of type {typeof(THandler).FullName}");
                 };
@@ -179,7 +177,11 @@ namespace TgBotFramework.UpdatePipeline
                 node.Notify = (context, cancellationToken) =>
                 {
                     if (context.Services.GetService(typeof(THandler)) is INotify<TContext> step)
+                    {
+                        var logger = context.Services.GetRequiredService<ILogger<THandler>>();
+                        logger.LogInformation($"Handling of notify with [{typeof(THandler).Name}].");
                         return step.NotifyStep(context, cancellationToken);
+                    }
                     else
                         throw new PipelineException($"Unable to resolve handler of type {typeof(THandler).FullName}");
                 };
@@ -190,7 +192,11 @@ namespace TgBotFramework.UpdatePipeline
                 node.Handler = (context, cancellationToken) =>
                 {
                     if (context.Services.GetService(typeof(THandler)) is IUpdateHandler<TContext> updateHandler)
+                    {
+                        var logger = context.Services.GetRequiredService<ILogger<THandler>>();
+                        logger.LogInformation($"Handling of update with [{typeof(THandler).Name}].");
                         return updateHandler.HandleAsync(context, prevDelegate, nextDelegate, cancellationToken);
+                    }
                     else
                         throw new PipelineException($"Unable to resolve handler of type {typeof(THandler).FullName}");
                 };
@@ -212,7 +218,11 @@ namespace TgBotFramework.UpdatePipeline
             {
                 node.CallbackButtonHandler =
                     (context, cancellationToken) =>
-                        callbackButtonHandler(prevDelegate, nextDelegate, context, cancellationToken);
+                    {
+                        var logger = context.Services.GetRequiredService<ILogger>();
+                        logger.LogInformation($"The delegate method with name {callbackButtonHandler.Method.Name} is handled.");
+                        return callbackButtonHandler(prevDelegate, nextDelegate, context, cancellationToken);
+                    };
             }
 
             if (replyKeyboardButtonHandler is not null)
@@ -320,7 +330,7 @@ namespace TgBotFramework.UpdatePipeline
                Func<LinkedNode<TContext>, UpdateDelegate<TContext>> executionSequence = null)
         {
             LinkedNode<TContext> newNode = new();
-
+            
             UpdateDelegate<TContext> prevDelegate = extendedPrevDelegate != null
                 ? extendedPrevDelegate(newNode)
                 : async (context, cancellationToken) => await newNode.Previous?.Data(context, cancellationToken);

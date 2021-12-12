@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using Jutsu.Telegarm.Bot.Models;
+using JutsuForms.Server.TgBotFramework;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -81,6 +82,7 @@ namespace TgBotFramework
                     update.Services = scope.ServiceProvider;
                     update.Bot = _bot;
                     update.StageContext = new StageContext();
+                    update.BotClient = scope.ServiceProvider.GetRequiredService<IUpdateService>();
 
                     await _updateHandler((TContext) update, stoppingToken);
 
