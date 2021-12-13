@@ -22,5 +22,6 @@ namespace CliverBot.Console.DataAccess
         public State PrevState { get; set; }
         public List<State> MessageState { get; set; }
         public ICollection<Connection> Connections { get; set; }
+        public ICollection<FormModel> Forms { get; set; }
     }
 }

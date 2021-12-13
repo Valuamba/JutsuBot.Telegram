@@ -27,6 +27,7 @@ using JutsuForms.Server.FormBot.Predicates;
 using JutsuForms.Server.FormBot.Handlers;
 using Telegram.Bot;
 using Microsoft.Extensions.Options;
+using JutsuForms.Server.FormBot.Handlers.Authorization;
 
 namespace JutsuForms.Server
 {
@@ -83,12 +84,15 @@ namespace JutsuForms.Server
                         .Step<MenuStep>()
                     )
                     .Stage("authorization", branch => branch
+                        //Возможно стоит сюда добавить мидл вар, который будет инициализировать пользователя с Forms?
+                        //.UseMiddleware<UserFormMapperMiddleware>()
                         .When(IsRole.Visitor, branch => branch
-                            .Step<AuthorizationNameHandler>(0)
-                            .Step<AuthorizationAgeHandler>(2)
-                            .Handler<AuthorizationValidation>(4)
-                            .Step<AuthorizationConfirmationRequest>(5)
-                            .Handler<AuthorizationEnding>(7)
+                            .Handler<AuthorizationFormEnterHandler>(0)
+                            .Step<AuthorizationNameHandler>(1)
+                            .Step<AuthorizationAgeHandler>(3)
+                            .Handler<AuthorizationValidation>(5)
+                            .Step<AuthorizationConfirmationRequest>(6)
+                            .Handler<AuthorizationEnding>(8)
                         )
                         .When(IsRole.Admin, branch => branch
                             .Handler<ResolveAuthorizationHandler>(0)

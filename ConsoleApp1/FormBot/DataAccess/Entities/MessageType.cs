@@ -9,6 +9,8 @@ namespace CliverBot.Console.DataAccess
     public enum MessageType
     {
         BeDeleted,
-        FormMessage
+        FormMessage,
+        FormStepInformationMessage,
+        ValidationError
     }
 }

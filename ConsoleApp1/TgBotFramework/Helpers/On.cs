@@ -1,4 +1,5 @@
 using System;
+using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 
 namespace TgBotFramework
@@ -6,6 +7,11 @@ namespace TgBotFramework
     public class On
     {
         public static bool Message(IUpdateContext context) => context.Update.Type == UpdateType.Message;
+        public static bool Message(IUpdateContext context, out Message message)
+        {
+            message = context.Update.Message;
+            return context.Update.Type == UpdateType.Message;
+        }
         public static bool Poll(IUpdateContext context) => context.Update.Type == UpdateType.Poll;
         public static bool Unknown(IUpdateContext context) => context.Update.Type == UpdateType.Unknown;
         public static bool CallbackQuery(IUpdateContext context) => context.Update.Type == UpdateType.CallbackQuery;

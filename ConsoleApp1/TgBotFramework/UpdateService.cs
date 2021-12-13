@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
 
@@ -25,12 +26,12 @@ namespace JutsuForms.Server.TgBotFramework
             _hubContext = hubContext;
         }
 
-        private async Task<User> GetUserWithConnectionsAsync(long userId)
+        private async Task<CliverBot.Console.DataAccess.User> GetUserWithConnectionsAsync(long userId)
         {
             return await _dbContext.Users.Include(u => u.Connections).SingleAsync(u => u.Id == userId);
         }
 
-        public async Task SendTextMessageAsync(Telegram.Bot.Types.ChatId chatId, string text, ParseMode? parseMode = null, IEnumerable<Telegram.Bot.Types.MessageEntity> entities = null, bool? disableWebPagePreview = null, bool? disableNotification = null, int? replyToMessageId = null, bool? allowSendingWithoutReply = null, IReplyMarkup replyMarkup = null, CancellationToken cancellationToken = default)
+        public async Task<Message> SendTextMessageAsync(Telegram.Bot.Types.ChatId chatId, string text, ParseMode? parseMode = null, IEnumerable<Telegram.Bot.Types.MessageEntity> entities = null, bool? disableWebPagePreview = null, bool? disableNotification = null, int? replyToMessageId = null, bool? allowSendingWithoutReply = null, IReplyMarkup replyMarkup = null, CancellationToken cancellationToken = default)
         {
             var user = await GetUserWithConnectionsAsync((long)chatId.Identifier);
 
@@ -38,6 +39,7 @@ namespace JutsuForms.Server.TgBotFramework
             {
                 await _hubContext.Clients.Client(connection.ConnectionId).SendAsync("Send", text);
             }
+            return null;
         }
     }
 }

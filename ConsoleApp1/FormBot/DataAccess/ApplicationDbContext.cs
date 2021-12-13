@@ -58,20 +58,20 @@ namespace JutsuBot.Elements.DataAccess
             var form = modelBuilder.Entity<FormModel>();
             form.HasKey(f => f.FormId);
 
-            form.HasOne(f => f.FormInformationMessage)
-                .WithOne(t => t.InformationMessageForm)
-                .HasForeignKey<TrackedMessage>(t => t.InformationMessageFormId)
-                .OnDelete(DeleteBehavior.NoAction);
+            //form.HasOne(f => f.FormInformationMessage)
+            //    .WithOne(t => t.InformationMessageForm)
+            //    .HasForeignKey<TrackedMessage>(t => t.InformationMessageFormId)
+            //    .OnDelete(DeleteBehavior.NoAction);
 
             form.HasMany(f => f.FormUtilityMessages)
                 .WithOne(t => t.UtilityMessageForm)
                 .HasForeignKey(t => t.UtilityMessageFormId)
                 .OnDelete(DeleteBehavior.NoAction);
 
-            form.HasMany(f => f.FormProperties)
-                .WithOne(p => p.Form)
-                .HasForeignKey(f => f.FormId)
-                .OnDelete(DeleteBehavior.NoAction);
+            //form.HasMany(f => f.FormProperties)
+            //    .WithOne(p => p.Form)
+            //    .HasForeignKey(f => f.FormId)
+            //    .OnDelete(DeleteBehavior.NoAction);
 
             //Form property
             var formProperty = modelBuilder.Entity<FormPropertyMetadata>();

@@ -11,14 +11,19 @@ namespace CliverBot.Console.DataAccess
     {
         public int FormId { get; set; }
 
+        public long ChatId { get; set; }
+
         public string FormName { get; set; }
 
         public string FormCacheModel { get; set; }
 
-        public TrackedMessage FormInformationMessage { get; set; }
+        //public TrackedMessage FormInformationMessage { get; set; }
 
         public List<TrackedMessage> FormUtilityMessages { get; set; }
 
-        public List<FormPropertyMetadata> FormProperties { get; set; }
+        //public List<FormPropertyMetadata> FormProperties { get; set; }
+
+        public long UserId { get; set; }
+        public User User { get; set; }
     }
 }

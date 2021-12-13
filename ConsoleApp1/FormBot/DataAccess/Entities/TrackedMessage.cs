@@ -12,6 +12,7 @@ namespace CliverBot.Console.DataAccess
         public long ChatId { get; set; }
         public MessageType MessageType { get; set; }
         public string? MessageText { get; set; }
+        //public 
 
         public int? StateId { get; set; }
         public State State { get; set; }
