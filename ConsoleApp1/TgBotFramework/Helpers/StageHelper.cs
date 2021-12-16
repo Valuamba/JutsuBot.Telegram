@@ -39,7 +39,7 @@ namespace JutsuForms.Server.TgBotFramework.Helpers
         {
             var stageName = GetStageName(stage);
 
-            return $"{stageName}?{string.Join('&', parameters.Select(d => $"{d.Key}:{d.Value}"))}";
+            return $"{stageName}?{string.Join('&', parameters.Select(d => $"{d.Key}={d.Value}"))}";
         }
 
         private static string GetStageName(string stage)

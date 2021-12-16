@@ -19,9 +19,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BackgroundTaskProject", "Ba
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "JutsuForms", "JutsuForms", "{24C44855-3377-4D45-9673-F34FE60E873C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JutsuForms.Client", "JutsuForms.Client\JutsuForms.Client.csproj", "{A3715FCF-BF7C-48C0-97EC-BD7320574FD1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JutsuForms.Client", "JutsuForms.Client\JutsuForms.Client.csproj", "{A3715FCF-BF7C-48C0-97EC-BD7320574FD1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JutsuBotServer", "JutsuBotServer\JutsuBotServer.csproj", "{E32F019A-EB43-45B6-948E-A84062BC88F1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JutsuBotServer", "JutsuBotServer\JutsuBotServer.csproj", "{E32F019A-EB43-45B6-948E-A84062BC88F1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -36,6 +36,7 @@ Global
 		{660320EF-F127-4DB6-ADC7-BD4E2529DBCA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{660320EF-F127-4DB6-ADC7-BD4E2529DBCA}.Release|Any CPU.Build.0 = Release|Any CPU
 		{262EFB3B-87D8-44F2-9CBF-0B90D4B9E62E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{262EFB3B-87D8-44F2-9CBF-0B90D4B9E62E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{262EFB3B-87D8-44F2-9CBF-0B90D4B9E62E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{262EFB3B-87D8-44F2-9CBF-0B90D4B9E62E}.Release|Any CPU.Build.0 = Release|Any CPU
 		{62BE6A4C-C21F-4B3F-8153-3450191F5CC0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU

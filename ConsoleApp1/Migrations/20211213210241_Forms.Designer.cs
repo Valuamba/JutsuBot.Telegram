@@ -4,14 +4,16 @@ using JutsuBot.Elements.DataAccess;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace ConsoleApp1.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20211213210241_Forms")]
+    partial class Forms
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -88,21 +90,13 @@ namespace ConsoleApp1.Migrations
                         .HasColumnType("int")
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-                    b.Property<long>("ChatId")
-                        .HasColumnType("bigint");
-
                     b.Property<string>("FormCacheModel")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("FormName")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<long>("UserId")
-                        .HasColumnType("bigint");
-
                     b.HasKey("FormId");
-
-                    b.HasIndex("UserId");
 
                     b.ToTable("Forms");
                 });
@@ -246,23 +240,12 @@ namespace ConsoleApp1.Migrations
             modelBuilder.Entity("CliverBot.Console.DataAccess.Entities.FormPropertyMetadata", b =>
                 {
                     b.HasOne("CliverBot.Console.DataAccess.FormModel", "Form")
-                        .WithMany()
+                        .WithMany("FormProperties")
                         .HasForeignKey("FormId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Form");
-                });
-
-            modelBuilder.Entity("CliverBot.Console.DataAccess.FormModel", b =>
-                {
-                    b.HasOne("CliverBot.Console.DataAccess.User", "User")
-                        .WithMany("Forms")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("CliverBot.Console.DataAccess.State", b =>
@@ -290,7 +273,8 @@ namespace ConsoleApp1.Migrations
                 {
                     b.HasOne("CliverBot.Console.DataAccess.FormModel", "InformationMessageForm")
                         .WithOne("FormInformationMessage")
-                        .HasForeignKey("CliverBot.Console.DataAccess.TrackedMessage", "InformationMessageFormId");
+                        .HasForeignKey("CliverBot.Console.DataAccess.TrackedMessage", "InformationMessageFormId")
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("CliverBot.Console.DataAccess.State", "State")
                         .WithOne("Message")
@@ -322,6 +306,8 @@ namespace ConsoleApp1.Migrations
                 {
                     b.Navigation("FormInformationMessage");
 
+                    b.Navigation("FormProperties");
+
                     b.Navigation("FormUtilityMessages");
                 });
 
@@ -335,8 +321,6 @@ namespace ConsoleApp1.Migrations
                     b.Navigation("Connections");
 
                     b.Navigation("CurrentState");
-
-                    b.Navigation("Forms");
 
                     b.Navigation("MessageState");
 

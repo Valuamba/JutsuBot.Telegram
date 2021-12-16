@@ -12,6 +12,9 @@ namespace TgBotFramework.UpdatePipeline
     {
         LinkedNode<TContext> Head { get; }
         ServiceCollection ServiceCollection { get; }
+
+        IServiceProvider ServiceProvider { get; }
+
         ILinkedStateMachine<TContext> Stage(string stage, Action<ILinkedStateMachine<TContext>> branch);
 
         Func<LinkedNode<TContext>, UpdateDelegate<TContext>> GetExecutionSequence(Func<LinkedNode<TContext>, UpdateDelegate<TContext>> executionSequence = null);

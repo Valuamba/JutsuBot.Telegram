@@ -17,8 +17,9 @@ namespace JutsuForms.Server.FormBot.Handlers.Authorization
 
         public async Task HandleAsync(BotExampleContext context, UpdateDelegate<BotExampleContext> prev, UpdateDelegate<BotExampleContext> next, CancellationToken cancellationToken)
         {
-            await _formService.EnterToForm(context.Update.GetSenderId(), context.UserState.CurrentState.Stage);
+            context.UserState.CurrentState.Stage = await _formService.EnterToForm(context.Update.GetSenderId(), context.UserState.CurrentState.Stage);
             context.UserState.CurrentState.Step++;
+            await next(context, cancellationToken);
         }
     }
 }

@@ -33,8 +33,11 @@ namespace TgBotFramework.UpdatePipeline
 
         public ServiceCollection ServiceCollection { get; }
 
-        public LinkedStateMachine(ServiceCollection serviceCollection)
+        public IServiceProvider ServiceProvider { get; }
+
+        public LinkedStateMachine(IServiceProvider serviceProvider, ServiceCollection serviceCollection)
         {
+            ServiceProvider = serviceProvider;
             ServiceCollection = serviceCollection;
             _count = 0;
             _firstNode = null;
@@ -44,7 +47,7 @@ namespace TgBotFramework.UpdatePipeline
         //TODO: добавить возможность брать стед из строки соответствующей сообщению.
         public ILinkedStateMachine<TContext> Stage(string stage, Action<ILinkedStateMachine<TContext>> branch)
         {
-            var stageBranch = new LinkedStateMachine<TContext>(ServiceCollection);
+            var stageBranch = new LinkedStateMachine<TContext>(ServiceProvider, ServiceCollection);
             branch(stageBranch);
 
             LinkedNode<TContext> newNode = new();
@@ -134,6 +137,7 @@ namespace TgBotFramework.UpdatePipeline
                     updateHandler.HandleAsync(context, prevDelegate, nextDelegate, cancellationToken);
             }
         }
+
         public void SeparateObjectToHandlers<THandler>(
            LinkedNode<TContext> node,
            UpdateDelegate<TContext> prevDelegate = null,

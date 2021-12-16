@@ -26,6 +26,14 @@ namespace TgBotFramework
         public IStageContext StageContext { get; set; }
         public IUpdateService BotClient { get; set; }
 
+        public async Task MooveToRoot(CancellationToken cancellationToken)
+        {
+            var channel = (Channel<IUpdateContext>)Services.GetService(typeof(Channel<IUpdateContext>));
+            Update.ClearUpdate();
+
+            await channel.Writer.WriteAsync(this, cancellationToken);
+        }
+
         public async Task LeaveStage(string to, CancellationToken cancellationToken, int? step = null)
         {
             UserState.PrevState = UserState.CurrentState;

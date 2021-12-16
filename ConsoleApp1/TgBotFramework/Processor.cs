@@ -41,7 +41,7 @@ namespace TgBotFramework
             _bot = bot;
             _updatesQueue = updatesQueue.Reader;
 
-            var pipe = new LinkedStateMachine<TContext>(new());
+            var pipe = new LinkedStateMachine<TContext>(serviceProvider, new());
 
             updatePipelineSettings.PipeSettings(pipe);
 

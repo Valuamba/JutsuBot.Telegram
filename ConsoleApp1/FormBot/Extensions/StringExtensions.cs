@@ -37,12 +37,18 @@ namespace ConsoleApp1.FormBot.Extensions
             return jobject.Property(propertyName);
         }
 
-        public static string AddItemToArray<TModel>(this string cache, object value, string propertyName)
-            where TModel : new()
+        /// <summary>
+        /// Dosent allow duplicates
+        /// </summary>
+        /// <param name="cache"></param>
+        /// <param name="value"></param>
+        /// <param name="propertyName"></param>
+        /// <returns></returns>
+        public static string AddItemToArray(this string cache, object value, string propertyName)
         {
-            var jobject = cache == null
-               ? JObject.FromObject(new TModel())
-               : JObject.Parse(cache);
+            var jobject = cache is null
+                ? new JObject()
+                : JObject.Parse(cache);
 
             var property = jobject.Property(propertyName);
 
@@ -53,11 +59,19 @@ namespace ConsoleApp1.FormBot.Extensions
                     property.Value = JArray.FromObject(Activator.CreateInstance(typeof(List<object>)));
                 }
 
-                var propertyJArray = property.Value as JArray;
+                var items = property.Value as JArray;
                 var jtoken = JToken.FromObject(value);
-                if (!propertyJArray?.Remove(jtoken) ?? true)
+
+                var comparer = new JTokenEqualityComparer();
+                var equalItem = items.SingleOrDefault(i => comparer.Equals(i, jtoken));
+
+                if (equalItem is not null)
                 {
-                    propertyJArray.Add(JToken.FromObject(value));
+                    equalItem.Remove();
+                }
+                else
+                {
+                    items.Add(JToken.FromObject(value));
                 }
             }
             else
@@ -75,11 +89,65 @@ namespace ConsoleApp1.FormBot.Extensions
             return jobject.ToString(Formatting.None);
         }
 
-        public static string AddProperty<TModel>(this string cache, object value, string propertyName)
-            where TModel : new()
+        public static string RemoveProperty(this string cache, string propertyName)
         {
-            var jobject = cache == null
-                ? JObject.FromObject(new TModel())
+            var jobject = cache is null
+                ? new JObject()
+                : JObject.Parse(cache);
+
+            jobject.Remove(propertyName);
+
+            return jobject.ToString(Formatting.None);
+        }
+
+        public static IEnumerable<string> GetPropertiesNamesWithValue(this string cache)
+        {
+            var jobject = cache is null
+                ? new JObject()
+                : JObject.Parse(cache);
+
+            IList<string> properties = new List<string>();
+            foreach (var property in jobject.Properties())
+            {
+                if (property.Value != null)
+                {
+                    properties.Add(property.Name);
+                }
+            }
+            return properties;
+        }
+
+        public static StringBuilder JsonToTelegramFormattedString(this string cache)
+        {
+            var jobject = cache is null
+                ? new JObject()
+                : JObject.Parse(cache);
+
+            StringBuilder sb = new StringBuilder();
+            foreach(var property in jobject.Properties())
+            {
+                if (property.Value is JArray items)
+                {
+                    sb.AppendLine($"<b>{property.Name}</b>:");
+
+                    foreach (var item in items)
+                    {
+                        sb.AppendLine($"- {item}");
+                    }
+                }
+                else
+                {
+                    sb.AppendLine($"<b>{property.Name}</b>: {property.Value}");
+                }
+            }
+
+            return sb;
+        }
+
+        public static string AddProperty(this string cache, object value, string propertyName)
+        {
+            var jobject = cache is null 
+                ? new JObject() 
                 : JObject.Parse(cache);
 
             var property = jobject.Property(propertyName);

@@ -11,6 +11,7 @@ namespace CliverBot.Console.DataAccess
         BeDeleted,
         FormMessage,
         FormStepInformationMessage,
+        MainFormMessage,
         ValidationError
     }
 }

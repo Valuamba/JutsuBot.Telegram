@@ -28,6 +28,8 @@ using JutsuForms.Server.FormBot.Handlers;
 using Telegram.Bot;
 using Microsoft.Extensions.Options;
 using JutsuForms.Server.FormBot.Handlers.Authorization;
+using JutsuForms.Server.FormBot;
+using ConsoleApp1.FormBot.Models;
 
 namespace JutsuForms.Server
 {
@@ -51,13 +53,18 @@ namespace JutsuForms.Server
             services.AddSignalR();
             services.AddLogging();
             services.AddScoped<IUpdateService, TelegramUpdateService>();
+            services.AddScoped<TrackedMessageRepository>();
+            services.AddScoped<FormService>();
             services.Configure<BotSettings>(Configuration.GetSection(nameof(BaseBot)));
 
+            services.AddSingleton<FormContext>();
+
             services.AddScoped<MenuStep>();
-            services.AddScoped<AuthorizationNameHandler>();
+            services.AddScoped<AuthorizationFormEnterHandler>();
+            //services.AddScoped<AuthorizationNameHandler>();
             services.AddScoped<AuthorizationEnding>();
             services.AddScoped<ResolveAuthorizationHandler>();
-            services.AddScoped<AuthorizationAgeHandler>();
+            //services.AddScoped<AuthorizationAgeHandler>();
             services.AddScoped<AuthorizationValidation>();
             services.AddScoped<AuthorizationConfirmationRequest>();
             services.AddScoped<UserStateMapperMiddleware<BotExampleContext>>();
@@ -83,13 +90,13 @@ namespace JutsuForms.Server
                     .Stage("menu", branch => branch
                         .Step<MenuStep>()
                     )
-                    .Stage("authorization", branch => branch
+                    .Form("authorization", branch => branch
                         //Возможно стоит сюда добавить мидл вар, который будет инициализировать пользователя с Forms?
                         //.UseMiddleware<UserFormMapperMiddleware>()
                         .When(IsRole.Visitor, branch => branch
                             .Handler<AuthorizationFormEnterHandler>(0)
-                            .Step<AuthorizationNameHandler>(1)
-                            .Step<AuthorizationAgeHandler>(3)
+                            .FormStep<AuthorizationAgeHandler>(1, nameof(AuthorizationModels.Age))
+                            .FormStep<AuthorizationNameHandler>(3, nameof(AuthorizationModels.Name))
                             .Handler<AuthorizationValidation>(5)
                             .Step<AuthorizationConfirmationRequest>(6)
                             .Handler<AuthorizationEnding>(8)

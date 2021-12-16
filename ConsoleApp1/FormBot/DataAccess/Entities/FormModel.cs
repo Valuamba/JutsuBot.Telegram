@@ -17,7 +17,7 @@ namespace CliverBot.Console.DataAccess
 
         public string FormCacheModel { get; set; }
 
-        //public TrackedMessage FormInformationMessage { get; set; }
+        public TrackedMessage FormInformationMessage { get; set; }
 
         public List<TrackedMessage> FormUtilityMessages { get; set; }
 

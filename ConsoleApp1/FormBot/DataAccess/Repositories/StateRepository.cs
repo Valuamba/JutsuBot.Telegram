@@ -24,7 +24,7 @@ namespace JutsuBot.Elements.DataAccess.Repositories
 
         public State GetStateByMessageId(long userId, int messageId)
         {
-            return _context.States.Single(s => s.UserId == userId && s.MessageId == messageId);
+            return _context.States.FirstOrDefault(s => s.UserId == userId && s.MessageId == messageId);
         }
 
         public State GetStateByPriority(StatePriority statePriority, long userId)

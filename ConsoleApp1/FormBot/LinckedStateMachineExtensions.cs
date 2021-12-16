@@ -19,7 +19,7 @@ namespace ConsoleApp1.FormBot
 
         public static ILinkedStateMachine<BotExampleContext> When(this ILinkedStateMachine<BotExampleContext> pipe, Predicate<BotExampleContext> predicate, Action<ILinkedStateMachine<BotExampleContext>> branch)
         {
-            var whenBranch = new LinkedStateMachine<BotExampleContext>(pipe.ServiceCollection);
+            var whenBranch = new LinkedStateMachine<BotExampleContext>(pipe.ServiceProvider, pipe.ServiceCollection);
             branch(whenBranch);
 
             LinkedNode<BotExampleContext> newNode = new();
@@ -83,14 +83,21 @@ namespace ConsoleApp1.FormBot
 
         private static async Task<bool> TryHandleUpdateWithUtilityHandlers(BotExampleContext context, UpdateButtonDelegate<BotExampleContext> updateButtonDelegate, UpdateButtonDelegate<BotExampleContext> replyKeyboardHandler)
         {
-            bool isUtilityHandlerExists;
+            bool isUtilityHandlerExists = true;
             try
             {
-                isUtilityHandlerExists = !await updateButtonDelegate(context) || !await replyKeyboardHandler(context);
+                isUtilityHandlerExists = !await updateButtonDelegate(context);
             }
             catch (HandlerNotFoundException ex) when (ex.HandlerCode == (int)HandlerType.CallbackHandler || ex.HandlerCode == (int)HandlerType.ReplyKeyboardHandler)
             {
-                isUtilityHandlerExists = true;
+            }
+
+            try
+            {
+                isUtilityHandlerExists = !await replyKeyboardHandler(context);
+            }
+            catch (HandlerNotFoundException ex) when (ex.HandlerCode == (int)HandlerType.CallbackHandler || ex.HandlerCode == (int)HandlerType.ReplyKeyboardHandler)
+            {
             }
 
             return isUtilityHandlerExists;

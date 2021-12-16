@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Telegram.Bot.Types;
 using TgBotFramework;
 using TgBotFramework.WrapperExtensions;
 
@@ -30,13 +31,13 @@ namespace CliverBot.Console.DataAccess
             var mainState = _stateRepository.GetStateByPriority(StatePriority.Main, context.Update.GetSenderId());
             if (mainState is null)
             {
-                if (On.CallbackQuery(context))
-                {
-                    var messageId = context.Update?.CallbackQuery?.Message?.MessageId;
-                    state = _stateRepository.GetStateByMessageId(context.Update.GetSenderId(), messageId.Value);
-                }
-                else
-                {
+                //if (On.CallbackQuery(context, out CallbackQuery callbackQuery))
+                //{
+                //    var messageId = context.Update?.CallbackQuery?.Message?.MessageId;
+                //    state = _stateRepository.GetStateByMessageId(context.Update.GetSenderId(), messageId.Value);
+                //}
+                //else
+                //{
                     var mediumState = _stateRepository.GetStateByPriority(StatePriority.Medium, context.Update.GetSenderId());
                     if(mediumState is null)
                     {
@@ -52,7 +53,7 @@ namespace CliverBot.Console.DataAccess
                     {
                         state = mediumState;
                     }
-                }
+                //}
             }
             else
             {

@@ -4,14 +4,16 @@ using JutsuBot.Elements.DataAccess;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace ConsoleApp1.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20211213210908_Forms_2")]
+    partial class Forms_2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -178,9 +180,7 @@ namespace ConsoleApp1.Migrations
 
                     b.HasKey("MessageId");
 
-                    b.HasIndex("InformationMessageFormId")
-                        .IsUnique()
-                        .HasFilter("[InformationMessageFormId] IS NOT NULL");
+                    b.HasIndex("InformationMessageFormId");
 
                     b.HasIndex("StateId")
                         .IsUnique()
@@ -289,8 +289,8 @@ namespace ConsoleApp1.Migrations
             modelBuilder.Entity("CliverBot.Console.DataAccess.TrackedMessage", b =>
                 {
                     b.HasOne("CliverBot.Console.DataAccess.FormModel", "InformationMessageForm")
-                        .WithOne("FormInformationMessage")
-                        .HasForeignKey("CliverBot.Console.DataAccess.TrackedMessage", "InformationMessageFormId");
+                        .WithMany()
+                        .HasForeignKey("InformationMessageFormId");
 
                     b.HasOne("CliverBot.Console.DataAccess.State", "State")
                         .WithOne("Message")
@@ -320,8 +320,6 @@ namespace ConsoleApp1.Migrations
 
             modelBuilder.Entity("CliverBot.Console.DataAccess.FormModel", b =>
                 {
-                    b.Navigation("FormInformationMessage");
-
                     b.Navigation("FormUtilityMessages");
                 });
 

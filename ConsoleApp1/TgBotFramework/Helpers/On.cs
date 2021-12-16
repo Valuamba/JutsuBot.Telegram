@@ -14,7 +14,11 @@ namespace TgBotFramework
         }
         public static bool Poll(IUpdateContext context) => context.Update.Type == UpdateType.Poll;
         public static bool Unknown(IUpdateContext context) => context.Update.Type == UpdateType.Unknown;
-        public static bool CallbackQuery(IUpdateContext context) => context.Update.Type == UpdateType.CallbackQuery;
+        public static bool CallbackQuery(IUpdateContext context, out CallbackQuery callbackQuery)
+        {
+            callbackQuery = context.Update.CallbackQuery;
+            return context.Update.Type == UpdateType.CallbackQuery;
+        }
         public static bool ChannelPost(IUpdateContext context) => context.Update.Type == UpdateType.ChannelPost;
         public static bool ChatMember(IUpdateContext context) => context.Update.Type == UpdateType.ChatMember;
         public static bool EditedMessage(IUpdateContext context) => context.Update.Type == UpdateType.EditedMessage;
