@@ -10,6 +10,11 @@ namespace ConsoleApp1.FormBot.Models
     {
         public string Name { get; set; }
         public int Age { get; set; }
+        public int Count { get; set; }
+        public string Address { get; set; }
+        public string Email { get; set; }
+        public int MMR { get; set; }
+        public string Index { get; set; }
         public List<IntersetType> Interests { get; set; }
 
     }

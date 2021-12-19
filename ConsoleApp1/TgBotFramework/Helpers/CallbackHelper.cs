@@ -18,9 +18,27 @@ namespace JutsuForms.Server.TgBotFramework.Helpers
             var callbackCommand = GetCallbackCommand(callback);
             var expectedCallbackCommand = GetCallbackCommand(expectedCallback);
 
-            return callbackCommand == expectedCallbackCommand
-                && callbackParameters.Count == expectedCallbackParameters.Count
-                && !callbackParameters.Keys.Except(expectedCallbackParameters.Keys).Any();
+            if(callbackCommand == expectedCallbackCommand)
+            {
+                if (callbackParameters is null && expectedCallbackParameters is null)
+                    return true;
+
+                if (callbackParameters?.Count == expectedCallbackParameters?.Count)
+                    return true;
+
+                if (!callbackParameters.Keys.Except(expectedCallbackParameters.Keys).Any())
+                    return true;
+            }
+
+            return false;
+        }
+
+        public static T GetCallbackParameter<T>(this string stage, string parameter)
+        {
+            var decodedParameters = DecodeCallbackDataParameters(stage);
+            var stringValue = decodedParameters[parameter];
+
+            return TConverter.ChangeType<T>(stringValue);
         }
 
         private static string GetCallbackCommand(string callback)

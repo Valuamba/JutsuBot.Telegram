@@ -16,6 +16,14 @@ namespace JutsuForms.Server.TgBotFramework.Helpers
             return stage.Split('?').ElementAtOrDefault(0)?.Equals(expectedStage.Split('?').ElementAtOrDefault(0)) ?? false;
         }
 
+        public static string RemoveStageParameter(this string stage, string parameterName)
+        {
+            var decodedParameters = DecodeQueryParameters(stage);
+            decodedParameters.Remove(parameterName);
+
+            return MergeStageWithParameters(stage, decodedParameters);
+        }
+
         public static string AddParameter(this string stage, string parameterName, object value)
         {
             var decodedParameters = DecodeQueryParameters(stage) ?? new Dictionary<string, string>();
@@ -47,6 +55,38 @@ namespace JutsuForms.Server.TgBotFramework.Helpers
             return stage
                 .Split('?')
                 .ElementAtOrDefault(0);
+        }
+
+        public static bool DoesParameterExist(this string stage, string parameter)
+        {
+            var decodedParameters = DecodeQueryParameters(stage);
+
+            if (decodedParameters is null)
+                return false;
+
+            if (decodedParameters.TryGetValue(parameter, out string value))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        public static bool TryToGetParamter<T>(this string stage, string parameter, out T parameterValue)
+        {
+            parameterValue = default;
+            var decodedParameters = DecodeQueryParameters(stage);
+
+            if (decodedParameters is null)
+                return false;
+
+            if (decodedParameters.TryGetValue(parameter, out string value))
+            {
+                parameterValue = TConverter.ChangeType<T>(value);
+                return true;
+            }
+
+            return false;
         }
 
         public static T GetParameter<T>(this string stage, string parameter)

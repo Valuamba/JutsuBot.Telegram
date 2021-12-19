@@ -30,6 +30,12 @@ using Microsoft.Extensions.Options;
 using JutsuForms.Server.FormBot.Handlers.Authorization;
 using JutsuForms.Server.FormBot;
 using ConsoleApp1.FormBot.Models;
+using System.Text.RegularExpressions;
+using Telegram.Bot.Types.ReplyMarkups;
+using ConsoleApp1.FormBot.Extensions;
+using JutsuForms.Server.FormBot.Handlers.Authorization.Handlers;
+using JutsuForms.Server.FormBot.Models;
+using JutsuForms.Server.FormBot.Middlewares;
 
 namespace JutsuForms.Server
 {
@@ -61,6 +67,7 @@ namespace JutsuForms.Server
 
             services.AddScoped<MenuStep>();
             services.AddScoped<AuthorizationFormEnterHandler>();
+            services.AddScoped<GlobalExceptionHandlerMiddleware>();
             //services.AddScoped<AuthorizationNameHandler>();
             services.AddScoped<AuthorizationEnding>();
             services.AddScoped<ResolveAuthorizationHandler>();
@@ -84,6 +91,7 @@ namespace JutsuForms.Server
 
                 .SetPipeline(pipelineBuilder => pipelineBuilder
 
+                    .UseMiddleware<GlobalExceptionHandlerMiddleware>()
                     .UseMiddleware<UserStateMapperMiddleware<BotExampleContext>>()
                     .UseMiddleware<StateMapperMiddleware<BotExampleContext>>()
 
@@ -91,12 +99,99 @@ namespace JutsuForms.Server
                         .Step<MenuStep>()
                     )
                     .Form("authorization", branch => branch
-                        //Возможно стоит сюда добавить мидл вар, который будет инициализировать пользователя с Forms?
-                        //.UseMiddleware<UserFormMapperMiddleware>()
                         .When(IsRole.Visitor, branch => branch
                             .Handler<AuthorizationFormEnterHandler>(0)
-                            .FormStep<AuthorizationAgeHandler>(1, nameof(AuthorizationModels.Age))
-                            .FormStep<AuthorizationNameHandler>(3, nameof(AuthorizationModels.Name))
+                            .FormStep<AuthorizationAgeHandler>(formHandlerContext: new FormHandlerContext()
+                            {
+                                Step = 1,
+                                FieldType = typeof(int),
+                                FieldName = nameof(AuthorizationModels.Age),
+                                InformationMessage = "Write your age",
+                                Placeholder = "...✍️",
+                                ValidationHandler = new List<ValidationHandler<BotExampleContext>>()
+                                {
+                                    new ValidationHandler<BotExampleContext>()
+                                    {
+                                        ErrorMessageAlias = "You should write number.",
+                                        UpdatePredicate = (context) => new Regex("\\d+").IsMatch(context.Update.Message.Text)
+                                    }
+                                },
+                                NavigationReplyMarkup = new string[][] { 
+                                    new [] { "Cancel" }
+                                },
+                            })
+                            .FormStep<InterestHandler>(formHandlerContext: new FormHandlerContext()
+                            {
+                                Step = 3,
+                                FieldType = typeof(List<InterestType>),
+                                FieldName = nameof(AuthorizationModels.Interests),
+                                InformationMessage = "Select your interests. This information will used in creting requerements for you.",
+                                Placeholder = "...✍️",
+                                NavigationReplyMarkup = new string[][] {
+                                    new [] { "Back" },
+                                    new [] { "Cancel" },
+                                }
+                            })
+                            .FormStep<CountHandler>(formHandlerContext: new FormHandlerContext()
+                            {
+                                Step = 5,
+                                FieldType = typeof(int),
+                                FieldName = nameof(AuthorizationModels.Count),
+                                InformationMessage = "Write count",
+                                Placeholder = "...✍️",
+                                NavigationReplyMarkup = new string[][] {
+                                    new [] { "Back" },
+                                    new [] { "Cancel" },
+                                }
+                            })
+                            .FormStep<AddressHandler>(formHandlerContext: new FormHandlerContext()
+                            {
+                                Step = 7,
+                                FieldType = typeof(string),
+                                FieldName = nameof(AuthorizationModels.Address),
+                                InformationMessage = "Write address",
+                                Placeholder = "...✍️",
+                                NavigationReplyMarkup = new string[][] {
+                                    new [] { "Back" },
+                                    new [] { "Cancel" },
+                                }
+                            })
+                            .FormStep<EmailHandler>(formHandlerContext: new FormHandlerContext()
+                            {
+                                Step = 9,
+                                FieldType = typeof(string),
+                                FieldName = nameof(AuthorizationModels.Email),
+                                InformationMessage = "Write email",
+                                Placeholder = "...✍️",
+                                NavigationReplyMarkup = new string[][] {
+                                    new [] { "Back" },
+                                    new [] { "Cancel" },
+                                }
+                            })
+                            .FormStep<MMRHandler>(formHandlerContext: new FormHandlerContext()
+                            {
+                                Step = 11,
+                                FieldType = typeof(string),
+                                FieldName = nameof(AuthorizationModels.MMR),
+                                InformationMessage = "Write MMR",
+                                Placeholder = "...✍️",
+                                NavigationReplyMarkup = new string[][] {
+                                    new [] { "Back" },
+                                    new [] { "Cancel" },
+                                }
+                            })
+                            .FormStep<MMRHandler>(formHandlerContext: new FormHandlerContext()
+                            {
+                                Step = 13,
+                                FieldType = typeof(int),
+                                FieldName = nameof(AuthorizationModels.Index),
+                                InformationMessage = "Write index",
+                                Placeholder = "...✍️",
+                                NavigationReplyMarkup = new string[][] {
+                                    new [] { "Back" },
+                                    new [] { "Cancel" },
+                                }
+                            })
                             .Handler<AuthorizationValidation>(5)
                             .Step<AuthorizationConfirmationRequest>(6)
                             .Handler<AuthorizationEnding>(8)

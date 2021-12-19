@@ -23,16 +23,31 @@ namespace JutsuForms.Server.FormBot.Handlers.Authorization
             FormService = formService;
         }
 
-        public async Task<bool> HandleCallbackButton(BotExampleContext context, UpdateDelegate<BotExampleContext> prev, UpdateDelegate<BotExampleContext> next, CancellationToken cancellationToken)
+        private async Task<bool> CheckOnAlreadyInChangedState(BotExampleContext context, UpdateDelegate<BotExampleContext> prev, UpdateDelegate<BotExampleContext> next, CancellationToken cancellationToken)
+        {
+            if (context.UserState.CurrentState.Stage.TryToGetParamter(AuthorizationConstants.CHANGE_FORM_INPUT, out int nextStep))
+            {
+                await FormService.AnswerOnCallbackWithAlert(context.Update.CallbackQuery.Id, "If you don't want to change value, pleace press 'Leave' button");
+                return false;
+            }
+
+            return true;
+        }
+
+        public virtual async Task<bool> HandleCallbackButton(BotExampleContext context, UpdateDelegate<BotExampleContext> prev, UpdateDelegate<BotExampleContext> next, CancellationToken cancellationToken)
         {
             if(On.CallbackQuery(context, out CallbackQuery callbackQuery))
             {
                 if(callbackQuery.Data.IsCallbackCommand(AuthorizationConstants.CHANGE_FIELD_CALLBACK_PATTERN))
                 {
+                    if (!await CheckOnAlreadyInChangedState(context, prev, next, cancellationToken))
+                        return true;
+
                     var changedPropertyName = callbackQuery.Data.GetParameter<string>("name");
                     var formId = callbackQuery.Data.GetParameter<int>("formId");
+
                     context.UserState.CurrentState.CacheData = context.UserState.CurrentState.CacheData
-                        .RemoveProperty(changedPropertyName)
+                        //.RemoveProperty(changedPropertyName)
                         .RemoveProperty(FormHandlerContext.FieldName);
 
                     var changedFormContext = FormContext.FormHandlersContext.FirstOrDefault(f => f.FieldName == changedPropertyName);
@@ -40,6 +55,7 @@ namespace JutsuForms.Server.FormBot.Handlers.Authorization
                     context.UserState.CurrentState.Step = changedFormContext.Step;
                     await FormService.DeleteUtilityMessages(formId, cancellationToken);
 
+                    context.UserState.CurrentState.Stage = context.UserState.CurrentState.Stage.AddParameter(AuthorizationConstants.CHANGE_FORM_INPUT, FormHandlerContext.Step);
                     await context.MooveToRoot(cancellationToken);
 
                     return true;

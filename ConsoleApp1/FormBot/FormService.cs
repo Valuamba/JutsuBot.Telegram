@@ -54,6 +54,11 @@ namespace JutsuForms.Server.FormBot
             await AddMessageToForm(chatId, messageId, formId, messageText, MessageType.BeDeleted);
         }
 
+        public async Task AnswerOnCallbackWithAlert(string callbackQueryId, string text)
+        {
+            await _client.AnswerCallbackQueryAsync(callbackQueryId, text);
+        }
+
         public async Task CancelForm(int formId)
         {
             var form = await _dbContext.Forms.Include(f => f.FormInformationMessage).SingleOrDefaultAsync(f => f.FormId == formId);
@@ -66,6 +71,17 @@ namespace JutsuForms.Server.FormBot
 
             var editedMessage = GetMainFormMessage(formStepMetadata);
             var inlineKeyboard = GetInlineKeyboardMarkupForStep(form.ChatId, formId, cache);
+
+            await _client.EditMessageTextAsync(form.ChatId, form.FormInformationMessage.MessageId, editedMessage, Telegram.Bot.Types.Enums.ParseMode.Html,
+                replyMarkup: inlineKeyboard);
+        }
+
+        public async Task UpdateTextOfForm(int formId, string cache, FormStepMetadata formStepMetadata)
+        {
+            var form = await _dbContext.Forms.Include(f => f.FormInformationMessage).SingleOrDefaultAsync(f => f.FormId == formId);
+
+            var editedMessage = GetMainFormMessage(formStepMetadata);
+            var inlineKeyboard = GetInlineKeyboardMarkupForStep(form.ChatId, formId, cache.RemoveProperty(formStepMetadata.Field));
 
             await _client.EditMessageTextAsync(form.ChatId, form.FormInformationMessage.MessageId, editedMessage, Telegram.Bot.Types.Enums.ParseMode.Html,
                 replyMarkup: inlineKeyboard);
@@ -93,15 +109,9 @@ namespace JutsuForms.Server.FormBot
             await AddMessageToForm(chatId, message.MessageId, formId, messageText, MessageType.ValidationError);
         }
 
-        public async Task SendFormStepInformationMessageAsync(long chatId, int formId, string messageText, FormStepMetadata formStepMetadata, IReplyMarkup infoReplyMarkup)
+        public async Task SendFormStepInformationMessageAsync(long chatId, int formId, string messageText, IReplyMarkup infoReplyMarkup)
         {
             var form = await _dbContext.Forms.Include(f => f.FormInformationMessage).Include(f => f.FormUtilityMessages).SingleOrDefaultAsync(f => f.FormId == formId);
-
-            var editedMessage = GetMainFormMessage(formStepMetadata);
-            var inlineKeyboard = GetInlineKeyboardMarkupForStep(form.ChatId, formId, formStepMetadata.Cache);
-
-            await _client.EditMessageTextAsync(form.ChatId, form.FormInformationMessage.MessageId, editedMessage, Telegram.Bot.Types.Enums.ParseMode.Html,
-                replyMarkup: inlineKeyboard);
             var message = await _client.SendTextMessageAsync(chatId, messageText, replyMarkup: infoReplyMarkup);
 
             form.FormUtilityMessages.Add(new TrackedMessage()
@@ -112,6 +122,11 @@ namespace JutsuForms.Server.FormBot
                 MessageType = MessageType.FormStepInformationMessage,
             });
             await _dbContext.SaveChangesAsync();
+        }
+
+        public async Task EditMessageReplyMarkup(long chatId, int messageId,  InlineKeyboardMarkup inlineKeyboard)
+        {
+            await _client.EditMessageReplyMarkupAsync(chatId, messageId, replyMarkup: inlineKeyboard);
         }
 
         public InlineKeyboardMarkup GetInlineKeyboardMarkupForStep(long userId, int formId, string cache)

@@ -111,17 +111,10 @@ namespace JutsuForms.Server.FormBot
 
         public static ILinkedStateMachine<BotExampleContext> FormStep<THandler>(
                 this ILinkedStateMachine<BotExampleContext> pipe,
-                int notifyMessageStep,
-                string fieldName)
+                FormHandlerContext formHandlerContext)
             where THandler : AuthorizationBaseHandler
         {
             var formContext = pipe.ServiceProvider.GetRequiredService<FormContext>();
-            var formHandlerContext = new FormHandlerContext()
-            {
-                Step = notifyMessageStep,
-                FieldName = fieldName,
-            };
-
             formContext.AddFormHandlerContext(formHandlerContext);
 
             //ServiceCollection.TryAddScoped(typeof(THandler));
@@ -130,7 +123,7 @@ namespace JutsuForms.Server.FormBot
             UpdateDelegate<BotExampleContext> nextDelegate = async (context, cancellationToken) => await newNode.Next?.Data(context, cancellationToken);
 
             SeparateObjectToHandlers<THandler>(newNode, formHandlerContext, formContext, prevDelegate, nextDelegate);
-            newNode.Data = GetStepExecutionSequence(notifyMessageStep)(newNode);
+            newNode.Data = GetStepExecutionSequence(formHandlerContext.Step)(newNode);
             pipe.AppendNode(newNode);
 
             return pipe;
