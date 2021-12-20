@@ -1,5 +1,7 @@
 ﻿using ConsoleApp1;
 using ConsoleApp1.FormBot.Extensions;
+using JutsuForms.Server.FormBot.Handlers.Authorization.Extensions;
+using JutsuForms.Server.FormBot.Models;
 using JutsuForms.Server.TgBotFramework.Helpers;
 using System.Threading;
 using System.Threading.Tasks;
@@ -31,60 +33,13 @@ namespace JutsuForms.Server.FormBot.Handlers.Authorization
             {
                 var formId = context.UserState.CurrentState.Stage.GetParameter<int>("formId");
 
-                if (FormHandlerContext.ValidationHandler != null)
-                {
-                    foreach (var validationHandler in FormHandlerContext.ValidationHandler)
-                    {
-                        if (!validationHandler.UpdatePredicate(context))
-                        {
-                            await FormService.SendValidationErrorMessageAsync(context.Update.GetSenderId(), formId, validationHandler.ErrorMessageAlias);
-                            return;
-                        }
-                    }
-                }
+                if (!await TryValidateInput(context, formId))
+                    return;
 
-                var value = TConverter.ChangeType(FormHandlerContext.FieldType, context.Update.Message.Text);
-                AddPropertyToCache(context, value);
+                AddPropertyToCache(context);
                 await PrepareFormToNextStep(context, formId, cancellationToken);
-
-                if (context.UserState.CurrentState.Stage.TryToGetParamter("prevStep", out int nextStep))
-                {
-                    context.UserState.CurrentState.Stage = context.UserState.CurrentState.Stage.RemoveStageParameter("prevStep");
-                    context.UserState.CurrentState.Step = nextStep;
-                    await context.MooveToRoot(cancellationToken);
-                }
-                else
-                {
-                    await next(context);
-                }
+                await MooveToNextStep(context, next, cancellationToken);
             }
-        }
-
-        private async Task PrepareFormToNextStep(BotExampleContext context, int formId, CancellationToken cancellationToken)
-        {
-            await FormService.DeleteUtilityMessages(formId, cancellationToken);
-            await FormService.UpdateForm(formId, context.UserState.CurrentState.CacheData, new FormStepMetadata()
-            {
-                FormName = FormContext.FormName,
-                Cache = context.UserState.CurrentState.CacheData
-            });
-        }
-
-        private void AddPropertyToCache(BotExampleContext context, object value)
-        {
-            context.UserState.CurrentState.CacheData = context.UserState.CurrentState.CacheData.AddProperty(value, FormHandlerContext.FieldName);
-            context.UserState.CurrentState.Step++;
-        }
-
-        private async Task UpdateCurrentForm(BotExampleContext context, int formId)
-        {
-            await FormService.UpdateForm(formId, context.UserState.CurrentState.CacheData, new FormStepMetadata()
-            {
-                FormName = FormContext.FormName,
-                Field = FormHandlerContext.FieldName,
-                Placeholder = FormHandlerContext.Placeholder,
-                Cache = context.UserState.CurrentState.CacheData
-            });
         }
 
         public async Task NotifyStep(BotExampleContext context, CancellationToken cancellationToken)
@@ -138,7 +93,7 @@ namespace JutsuForms.Server.FormBot.Handlers.Authorization
 
         public async Task<bool> HandleReplyKeyboardButton(BotExampleContext context, UpdateDelegate<BotExampleContext> prev, UpdateDelegate<BotExampleContext> next, CancellationToken cancellationToken)
         {
-            if(On.Message(context, out Message message))
+            if (On.Message(context, out Message message))
             {
                 var formId = context.UserState.CurrentState.Stage.GetParameter<int>("formId");
                 await FormService.HandleInputMessage(context.Update.GetSenderId(), message.MessageId, formId, message.Text);
@@ -148,6 +103,73 @@ namespace JutsuForms.Server.FormBot.Handlers.Authorization
             }
 
             return false;
+        }
+
+        private async Task<bool> TryValidateInput(BotExampleContext context, int formId)
+        {
+            if (FormHandlerContext.ValidationHandler != null)
+            {
+                foreach (var validationHandler in FormHandlerContext.ValidationHandler)
+                {
+                    if (!validationHandler.UpdatePredicate(context))
+                    {
+                        await FormService.SendValidationErrorMessageAsync(context.Update.GetSenderId(), formId, validationHandler.ErrorMessageAlias);
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        private async Task PrepareFormToNextStep(BotExampleContext context, int formId, CancellationToken cancellationToken)
+        {
+            await FormService.DeleteUtilityMessages(formId, cancellationToken);
+            await FormService.UpdateForm(formId, context.UserState.CurrentState.CacheData, new FormStepMetadata()
+            {
+                FormName = FormContext.FormName,
+                Cache = context.UserState.CurrentState.CacheData
+            });
+        }
+
+        private void AddPropertyToCache(BotExampleContext context)
+        {
+            var value = TConverter.ChangeType(FormHandlerContext.FieldType, context.Update.Message.Text);
+            string cache = context.UserState.CurrentState.CacheData;
+            AuthorizationCacheHelper.AddProperty(ref cache, new PropertyModel()
+            {
+                Order = FormHandlerContext.Step,
+                PropertyName = FormHandlerContext.FieldName,
+                Value = value
+            });
+            context.UserState.CurrentState.CacheData = cache;
+        }
+
+        private async Task MooveToNextStep(BotExampleContext context, UpdateDelegate<BotExampleContext> next, CancellationToken cancellationToken)
+        {
+            if (context.UserState.CurrentState.Stage.TryToGetParamter("prevStep", out int nextStep))
+            {
+                context.UserState.CurrentState.Stage = context.UserState.CurrentState.Stage.RemoveStageParameter("prevStep");
+                context.UserState.CurrentState.Step = nextStep;
+                await context.MooveToRoot(cancellationToken);
+            }
+            else
+            {
+                context.UserState.CurrentState.Step++;
+                await next(context);
+            }
+        }
+
+        private async Task UpdateCurrentForm(BotExampleContext context, int formId)
+        {
+            await FormService.UpdateForm(formId, context.UserState.CurrentState.CacheData, 
+                new FormStepMetadata()
+                {
+                    FormName = FormContext.FormName,
+                    Field = FormHandlerContext.FieldName,
+                    Placeholder = FormHandlerContext.Placeholder,
+                    Cache = context.UserState.CurrentState.CacheData
+                }); 
         }
     }
 }
